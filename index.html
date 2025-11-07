@@ -1,47 +1,1020 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
-  <title>FAIM-QIRF Demo • Ethics & Epistemic Justice</title>
-  <meta name="color-scheme" content="light only" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet"
-  >
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    html, body { height: 100%; }
-    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    .chip { @apply text-xs px-2 py-1 rounded-full bg-gray-100; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 3: Philosopher Modeling Studio</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .model-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .model-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .connection-line {
+            stroke: #9333ea;
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
-  <header class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="#/home" class="font-bold text-lg">FAIM-QIRF • Demo</a>
-      <nav class="flex gap-3 text-sm">
-        <a class="hover:underline" href="#/playground">Playground</a>
-        <a class="hover:underline" href="#/philosophers">Philosophers</a>
-        <a class="hover:underline" href="#/labs">Injustice Labs</a>
-        <a class="hover:underline" href="#/repair">Repair</a>
-        <a class="hover:underline" href="#/about">About</a>
-      </nav>
-    </div>
-  </header>
+    <div id="root"></div>
 
-  <main id="app" class="max-w-7xl mx-auto px-4 py-6"></main>
+    <script type="text/babel" data-presets="env,react">
+        const { useState, useEffect } = React;
 
-  <footer class="border-t mt-10">
-    <div class="max-w-7xl mx-auto px-4 py-6 text-xs text-gray-500">
-      Demo is stateless. Use Export/Import to share a configuration. No tracking, no cookies.
-    </div>
-  </footer>
+        // Generate session ID
+        const generateSessionId = () => {
+            const date = new Date();
+            const dateStr = date.toISOString().slice(0,10).replace(/-/g, '');
+            const timeStr = date.toTimeString().slice(0,5).replace(/:/g, '');
+            const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+            return `M3-${dateStr}-${timeStr}-${random}`;
+        };
 
-  <script type="module" src="./app/main.js"></script>
+        // Philosopher database with diverse global representation
+        const PHILOSOPHERS = {
+            socrates: {
+                name: "Socrates",
+                era: "Ancient Greece (470-399 BCE)",
+                region: "Western",
+                image: "🏛️",
+                model: {
+                    IK: "Examined life is the only life worth living; virtue is knowledge",
+                    PRS_t: "Ethical questions revealed through dialectical questioning; appearances deceive",
+                    SPTS: ["Athenian citizen", "Stonemason's son", "Gadfly of Athens", "Male philosopher"],
+                    AH: "Grew up in democratic Athens; experienced Peloponnesian War; questioned sophists; executed by democracy",
+                    BROAPlus: "Knowledge through dialogue; definitions must withstand scrutiny; virtue can be taught through questioning",
+                    Cap: "Capacity for self-examination and moral reasoning present in everyone",
+                    Capab: "Elenchus method - systematic questioning to reveal contradictions and unexamined beliefs",
+                    Cons: "Dialogical practice; trained students like Plato; method persisted beyond his death",
+                    MetaCons: "Limited - relied on memory of students to preserve; no systematic review of method",
+                    Gates: "Required dialectical skill; oral culture; excluded those unable to engage in sustained argument"
+                },
+                keyInsights: [
+                    "Made ethics central to philosophy - not just 'what is' but 'how should we live'",
+                    "Method over doctrine - questioning more important than answers",
+                    "Universal moral knowledge possible through reason and dialogue"
+                ],
+                limitations: [
+                    "Required leisure and education for philosophical dialogue - excluded workers, slaves, women",
+                    "Athenian male perspective shaped what counted as 'virtue'",
+                    "Oral method meant fragility - knowledge lost if not recorded"
+                ],
+                whatRevealed: "Power of systematic questioning to reveal unexamined assumptions; ethics as rational inquiry",
+                whatExcluded: "Perspectives of women, slaves, non-Greeks; practical wisdom of those without leisure; embodied knowledge"
+            },
+            
+            maathai: {
+                name: "Wangari Maathai",
+                era: "Contemporary (1940-2011)",
+                region: "Kenya/Africa",
+                image: "🌳",
+                model: {
+                    IK: "Environmental destruction is a human rights and women's issue; trees as symbols of democratic struggle",
+                    PRS_t: "Sees connections invisible to Western environmentalism: deforestation → poverty → women's labor → political oppression",
+                    SPTS: ["Kenyan woman", "Kikuyu", "Environmental scientist", "Political activist", "Nobel laureate"],
+                    AH: "Grew up in colonial Kenya; educated in biology (U.S.); experienced post-independence corruption; imprisonment for activism",
+                    BROAPlus: "Indigenous ecological knowledge + Western science; women's labor as ecological work; democracy and environment linked",
+                    Cap: "Women have capacity for environmental stewardship and political organizing",
+                    Capab: "Community tree-planting as reliable method; linking local action to systemic change",
+                    Cons: "Green Belt Movement (30M+ trees planted); movement persisted and expanded beyond founder",
+                    MetaCons: "Movement adapted: trees → women's rights → democracy → peace. Learning loops built into structure",
+                    Gates: "Challenged: 'Environment = elite/expert domain', 'Women = not political actors', 'Local knowledge = primitive'"
+                },
+                keyInsights: [
+                    "Environmental degradation and women's oppression are connected - same power structures",
+                    "Local ecological action can be powerful political organizing",
+                    "Indigenous knowledge and Western science can complement each other"
+                ],
+                limitations: [
+                    "Movement faced government repression; scaling required institutional support",
+                    "Gender-based organizing can essentialize 'women's roles'",
+                    "Tension between local autonomy and movement coordination"
+                ],
+                whatRevealed: "Environmental ethics from African women's standpoint; connection between ecology, gender, and political freedom",
+                whatExcluded: "Western environmentalism's 'wilderness preservation' excluded people who live in/with nature; male-dominated environmental movements"
+            },
+
+            mandela: {
+                name: "Nelson Mandela",
+                era: "Contemporary (1918-2013)",
+                region: "South Africa/Africa",
+                image: "🕊️",
+                model: {
+                    IK: "Ubuntu - 'I am because we are'; justice as restoration not retribution; dignity of all humans",
+                    PRS_t: "Sees possibility of reconciliation where others see only revenge; transformation over punishment",
+                    SPTS: ["Black South African", "Xhosa", "Lawyer", "Political prisoner (27 years)", "President", "Reconciler"],
+                    AH: "Apartheid oppression; armed resistance; Robben Island imprisonment; negotiated transition; led democracy",
+                    BROAPlus: "Ubuntu philosophy + Western jurisprudence + Gandhian non-violence; relational ontology",
+                    Cap: "Even oppressors have capacity for transformation; communities can heal",
+                    Capab: "Truth and Reconciliation process as method; constitutional democracy with protections",
+                    Cons: "TRC as institution (truth → acknowledgment → amnesty possibility); constitution with Bill of Rights",
+                    MetaCons: "TRC itself was meta-constructor - reviewing past to build future; constitution designed for adaptation",
+                    Gates: "Challenged: 'Justice = punishment'; included perpetrators as humans capable of change"
+                },
+                keyInsights: [
+                    "Justice can be restorative, not just punitive - healing communities, not just punishing individuals",
+                    "Ubuntu relational ontology - we are constituted by relationships, not isolated individuals",
+                    "Former enemies can become fellow citizens through truth-telling and recognition"
+                ],
+                limitations: [
+                    "TRC criticized for insufficient material reparations - recognition without redistribution",
+                    "Some victims felt betrayed by amnesty process",
+                    "Economic apartheid persisted despite political transformation"
+                ],
+                whatRevealed: "Alternative justice model from African philosophy; dignity-based rather than rights-based approach",
+                whatExcluded: "Western punitive justice models; individualist ontology; abstract 'veil of ignorance' approaches"
+            },
+
+            simpson: {
+                name: "Leanne Betasamosake Simpson",
+                era: "Contemporary (1971-present)",
+                region: "Michi Saagiig Nishnaabeg/Canada",
+                image: "🌲",
+                model: {
+                    IK: "Knowledge lives in land-tethered practice; resurgence not reconciliation; Nishnaabeg intelligence systems",
+                    PRS_t: "Sees knowledge as seasonal, relational, place-based; land as pedagogy; practice as theory",
+                    SPTS: ["Michi Saagiig Nishnaabeg woman", "Scholar", "Artist", "Land defender", "Mother"],
+                    AH: "Generations of colonial disruption; cultural resurgence movements; language revitalization; ongoing land defense",
+                    BROAPlus: "Nishnaabeg cosmology + critical theory; Indigenous governance systems; storytelling as methodology",
+                    Cap: "Indigenous practices carry sophisticated epistemological, political, and ethical systems",
+                    Capab: "Land-based education; seasonal rounds; ceremony; storytelling; language as worldview",
+                    Cons: "Community-based learning; intergenerational knowledge transmission; place-based practices",
+                    MetaCons: "Resurgence as continuous practice - not endpoint but process; adaptation while maintaining core",
+                    Gates: "Challenged: 'Knowledge = text in universities'; 'Valid = universal & abstract'; 'Progress = leaving land'"
+                },
+                keyInsights: [
+                    "Knowledge can be particular to place yet rigorous - not all knowledge is universal",
+                    "Reconciliation without land return is empty; resurgence requires material transformation",
+                    "Practice-based knowledge systems are sophisticated, not 'primitive'"
+                ],
+                limitations: [
+                    "Requires access to land and community - colonial dispossession creates barriers",
+                    "Challenge of transmitting land-based knowledge in urban settings",
+                    "Risk of appropriation when sharing Indigenous knowledge systems"
+                ],
+                whatRevealed: "Non-textual, place-based epistemologies; critique of reconciliation discourse; Indigenous futures",
+                whatExcluded: "Western assumption that valid knowledge must be abstract, universal, text-based, individual"
+            },
+
+            collins: {
+                name: "Patricia Hill Collins",
+                era: "Contemporary (1948-present)",
+                region: "United States",
+                image: "📚",
+                model: {
+                    IK: "Intersectionality reveals matrix of domination; lived experience is legitimate knowledge; outsider-within position",
+                    PRS_t: "Sees how race, gender, class interact - not additive but multiplicative; standpoint shapes knowledge",
+                    SPTS: ["Black American woman", "Sociologist", "Working-class background", "Academic"],
+                    AH: "Grew up in Philadelphia working-class Black community; education through segregation and integration; academic outsider-within",
+                    BROAPlus: "Black feminist standpoint epistemology: concrete experience + dialogue + ethics of care + accountability",
+                    Cap: "Black women have distinctive standpoint revealing truths invisible from other positions",
+                    Capab: "Standpoint methodology; intersectional analysis; validating multiple forms of evidence",
+                    Cons: "Black feminist thought as intellectual tradition; institutional presence in academy (journals, positions)",
+                    MetaCons: "Intersectionality adapted to analyze multiple axes; outsider-within as ongoing reflective position",
+                    Gates: "Challenged: 'Scholarly = only abstract/textual'; 'Objective = emotionally detached'; 'Experience ≠ evidence'"
+                },
+                keyInsights: [
+                    "Standpoint matters - what you can see depends on where you stand in systems of power",
+                    "Intersectionality - race, gender, class create unique positions, not just combinations",
+                    "Concrete experience, dialogue, care, and accountability are valid evidence bases"
+                ],
+                limitations: [
+                    "Standpoint can become essentialized - not all Black women see same things",
+                    "Tension between claiming distinctive standpoint and avoiding essentialism",
+                    "Institutional inclusion brings risk of cooptation"
+                ],
+                whatRevealed: "Matrix of domination; intersectional analysis; lived experience as legitimate knowledge base",
+                whatExcluded: "Traditional epistemology's rejection of situated knowledge and lived experience"
+            },
+
+            aristotle: {
+                name: "Aristotle",
+                era: "Ancient Greece (384-322 BCE)",
+                region: "Western",
+                image: "📖",
+                model: {
+                    IK: "Human flourishing (eudaimonia) through virtue; teleological nature; golden mean",
+                    PRS_t: "Purpose/function reveals proper activity; observation + reason; virtue through habituation",
+                    SPTS: ["Greek male", "Macedonian", "Philosopher", "Teacher", "Naturalist"],
+                    AH: "Student of Plato; tutor to Alexander; founded Lyceum; systematic researcher across domains",
+                    BROAPlus: "Empiricism + logic; systematic classification; virtue as excellence of function; practical wisdom",
+                    Cap: "Humans have natural capacity for reason and virtue (but NOT slaves, barbarians, women fully)",
+                    Capab: "Virtue ethics; systematic observation; logical analysis; classification systems",
+                    Cons: "Lyceum as institution; systematic corpus; educational tradition persisting centuries",
+                    MetaCons: "Limited - preserved through manuscripts but little adaptation mechanism; commentary tradition",
+                    Gates: "Flourishing = free Greek males with leisure; slaves 'naturally' suited to servitude; women deficient in reason"
+                },
+                keyInsights: [
+                    "Ethics tied to human function and flourishing, not just rules or consequences",
+                    "Virtue developed through practice and habituation, not just knowledge",
+                    "Practical wisdom (phronesis) essential for applying principles to particular situations"
+                ],
+                limitations: [
+                    "Flourishing defined from perspective of free Greek male elite",
+                    "Justified slavery and women's subordination as 'natural'",
+                    "Required leisure for virtuous activity - excluded most of humanity"
+                ],
+                whatRevealed: "Virtue ethics as systematic framework; importance of character and habituation; teleological thinking",
+                whatExcluded: "Perspectives of women, slaves, 'barbarians'; alternative conceptions of flourishing; non-hierarchical social orders"
+            }
+        };
+
+        // Main App Component
+        function App() {
+            const [studentInfo, setStudentInfo] = useState({ name: '', email: '', course: '' });
+            const [hasStarted, setHasStarted] = useState(false);
+            const [currentSection, setCurrentSection] = useState('intro');
+            const [sessionData, setSessionData] = useState(null);
+            const [sectionProgress, setSectionProgress] = useState({});
+            const [studentModels, setStudentModels] = useState({});
+            const [currentModel, setCurrentModel] = useState(null);
+            const [comparisonPair, setComparisonPair] = useState([null, null]);
+
+            // Load saved progress
+            useEffect(() => {
+                const saved = localStorage.getItem('module3Progress');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.hasStarted) {
+                        setHasStarted(true);
+                        setStudentInfo(data.studentInfo || {});
+                        setCurrentSection(data.currentSection || 'intro');
+                        setSessionData(data.sessionData || null);
+                        setSectionProgress(data.sectionProgress || {});
+                        setStudentModels(data.studentModels || {});
+                    }
+                }
+            }, []);
+
+            // Save progress
+            useEffect(() => {
+                if (hasStarted) {
+                    localStorage.setItem('module3Progress', JSON.stringify({
+                        hasStarted,
+                        studentInfo,
+                        currentSection,
+                        sessionData,
+                        sectionProgress,
+                        studentModels
+                    }));
+                }
+            }, [hasStarted, studentInfo, currentSection, sessionData, sectionProgress, studentModels]);
+
+            const startModule = (info) => {
+                const session = {
+                    sessionId: generateSessionId(),
+                    startTime: new Date().toISOString(),
+                    completionTime: null
+                };
+                setStudentInfo(info);
+                setSessionData(session);
+                setHasStarted(true);
+                
+                const initialProgress = {};
+                ['intro', 'os1os2', 'notation', 'exemplars', 'comparison', 'modeling', 'synthesis'].forEach(section => {
+                    initialProgress[section] = {
+                        started: section === 'intro',
+                        startTime: section === 'intro' ? new Date().toISOString() : null,
+                        endTime: null,
+                        status: section === 'intro' ? 'in-progress' : 'not-started'
+                    };
+                });
+                setSectionProgress(initialProgress);
+            };
+
+            const navigateToSection = (sectionId) => {
+                if (sectionProgress[currentSection]) {
+                    const startTime = new Date(sectionProgress[currentSection].startTime);
+                    const now = new Date();
+                    const timeSpent = Math.round((now - startTime) / 60000);
+                    
+                    setSectionProgress(prev => ({
+                        ...prev,
+                        [currentSection]: {
+                            ...prev[currentSection],
+                            endTime: now.toISOString(),
+                            timeSpent
+                        }
+                    }));
+                }
+
+                if (sectionProgress[sectionId] && !sectionProgress[sectionId].started) {
+                    setSectionProgress(prev => ({
+                        ...prev,
+                        [sectionId]: {
+                            ...prev[sectionId],
+                            started: true,
+                            startTime: new Date().toISOString(),
+                            status: 'in-progress'
+                        }
+                    }));
+                }
+
+                setCurrentSection(sectionId);
+            };
+
+            const completeSection = (sectionId, status = 'proficient') => {
+                setSectionProgress(prev => ({
+                    ...prev,
+                    [sectionId]: {
+                        ...prev[sectionId],
+                        endTime: new Date().toISOString(),
+                        status
+                    }
+                }));
+            };
+
+            const calculateProgress = () => {
+                const sections = Object.keys(sectionProgress);
+                if (sections.length === 0) return 0;
+                const completed = sections.filter(s => 
+                    ['proficient', 'mastered', 'developing'].includes(sectionProgress[s].status)
+                ).length;
+                return Math.round((completed / sections.length) * 100);
+            };
+
+            if (!hasStarted) {
+                return <WelcomeScreen onStart={startModule} />;
+            }
+
+            const sections = [
+                { id: 'intro', label: 'Introduction', icon: '🎯' },
+                { id: 'os1os2', label: 'OS1/OS2 Framework', icon: '🧠' },
+                { id: 'notation', label: 'FAIM-QIRF Notation', icon: '📐' },
+                { id: 'exemplars', label: 'Philosopher Exemplars', icon: '🌍' },
+                { id: 'comparison', label: 'Comparative Analysis', icon: '⚖️' },
+                { id: 'modeling', label: 'Student Modeling', icon: '✏️' },
+                { id: 'synthesis', label: 'Synthesis & Completion', icon: '🎓' }
+            ];
+
+            return (
+                <div className="min-h-screen">
+                    <header className="gradient-bg text-white shadow-lg">
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h1 className="text-3xl font-bold mb-2">Module 3: Philosopher Modeling Studio</h1>
+                                    <p className="text-lg opacity-90">Building Meta-Constructor Capacity Through Formal Modeling</p>
+                                    <div className="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+                                        <div 
+                                            className="bg-white h-full transition-all duration-300"
+                                            style={{ width: `${calculateProgress()}%` }}
+                                        ></div>
+                                    </div>
+                                    <p className="text-sm mt-2 opacity-80">{calculateProgress()}% Complete</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm('Clear all progress and start over?')) {
+                                            localStorage.removeItem('module3Progress');
+                                            window.location.reload();
+                                        }
+                                    }}
+                                    className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-semibold transition-colors"
+                                >
+                                    🔄 Reset
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <nav className="bg-white shadow-sm sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="flex overflow-x-auto py-4 space-x-2">
+                                {sections.map(section => {
+                                    const status = sectionProgress[section.id]?.status || 'not-started';
+                                    const isCurrent = currentSection === section.id;
+                                    
+                                    return (
+                                        <button
+                                            key={section.id}
+                                            onClick={() => navigateToSection(section.id)}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                                                isCurrent ? 'bg-purple-100 text-purple-700 font-semibold' : 'hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <span className="text-xl">{section.icon}</span>
+                                            <span>{section.label}</span>
+                                            {status === 'mastered' && <span>⭐</span>}
+                                            {status === 'proficient' && <span>✓</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        <div className="fade-in">
+                            {currentSection === 'intro' && (
+                                <IntroSection 
+                                    onComplete={() => completeSection('intro')}
+                                    onNext={() => navigateToSection('os1os2')}
+                                />
+                            )}
+                            {currentSection === 'os1os2' && (
+                                <OS1OS2Section 
+                                    onComplete={() => completeSection('os1os2')}
+                                    onNext={() => navigateToSection('notation')}
+                                />
+                            )}
+                            {currentSection === 'notation' && (
+                                <NotationSection 
+                                    onComplete={() => completeSection('notation')}
+                                    onNext={() => navigateToSection('exemplars')}
+                                />
+                            )}
+                            {currentSection === 'exemplars' && (
+                                <ExemplarsSection 
+                                    philosophers={PHILOSOPHERS}
+                                    currentModel={currentModel}
+                                    setCurrentModel={setCurrentModel}
+                                    onComplete={() => completeSection('exemplars')}
+                                    onNext={() => navigateToSection('comparison')}
+                                />
+                            )}
+                            {currentSection === 'comparison' && (
+                                <ComparisonSection 
+                                    philosophers={PHILOSOPHERS}
+                                    comparisonPair={comparisonPair}
+                                    setComparisonPair={setComparisonPair}
+                                    onComplete={() => completeSection('comparison')}
+                                    onNext={() => navigateToSection('modeling')}
+                                />
+                            )}
+                            {currentSection === 'modeling' && (
+                                <ModelingSection 
+                                    studentModels={studentModels}
+                                    setStudentModels={setStudentModels}
+                                    onComplete={() => completeSection('modeling')}
+                                    onNext={() => navigateToSection('synthesis')}
+                                />
+                            )}
+                            {currentSection === 'synthesis' && (
+                                <SynthesisSection 
+                                    studentInfo={studentInfo}
+                                    sessionData={sessionData}
+                                    sectionProgress={sectionProgress}
+                                    studentModels={studentModels}
+                                    onComplete={() => {
+                                        completeSection('synthesis', 'mastered');
+                                        setSessionData(prev => ({
+                                            ...prev,
+                                            completionTime: new Date().toISOString()
+                                        }));
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        // Welcome Screen
+        function WelcomeScreen({ onStart }) {
+            const [formData, setFormData] = useState({ name: '', email: '', course: '' });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.name && formData.email && formData.course) {
+                    onStart(formData);
+                }
+            };
+
+            return (
+                <div className="min-h-screen gradient-bg py-12 px-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-2xl p-8 mb-6">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                                Module 3: Philosopher Modeling Studio
+                            </h1>
+                            <p className="text-xl text-gray-700 mb-6">
+                                Building Meta-Constructor Capacity Through Formal Modeling
+                            </p>
+
+                            <div className="prose prose-lg max-w-none mb-8">
+                                <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
+                                    <h3 className="text-xl font-semibold text-blue-900 mb-2">What This Module Adds</h3>
+                                    <p className="text-gray-700">
+                                        Traditional ethics courses teach essential skills (OS1): rigorous argumentation, 
+                                        concept analysis, understanding core frameworks. This module adds a complementary 
+                                        layer (OS2): the capacity to formally model <em>how</em> different standpoints 
+                                        shape ethical reasoning.
+                                    </p>
+                                </div>
+
+                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">The Sapolsky Challenge</h3>
+                                <p className="text-gray-700 mb-4">
+                                    If we're fully determined by physics and our past (as neuroscientist Robert Sapolsky argues), 
+                                    where's the room for ethics or genuine agency? His deterministic view seems to leave little 
+                                    space for meaningful choice at time t+1 based solely on the constraints of time t.
+                                </p>
+
+                                <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                    <h4 className="text-lg font-semibold text-purple-900 mb-2">The Meta-Constructor Response</h4>
+                                    <p className="text-gray-700 mb-3">
+                                        But here's the key insight: when agents can build <strong>meta-constructors</strong> 
+                                        (models of ourselves that we use to guide ourselves), we create genuine degrees of freedom.
+                                    </p>
+                                    <p className="text-gray-700">
+                                        Not libertarian "free will," but real options at t+1 that depend on <em>how we model 
+                                        ourselves</em> at t. The act of self-modeling itself creates space for agency.
+                                    </p>
+                                </div>
+
+                                <h3 className="text-2xl font-semibold text-gray-900 mb-4">What You'll Learn</h3>
+                                <ul className="space-y-3 text-gray-700">
+                                    <li><strong>FAIM-QIRF Notation:</strong> Formal language for modeling ethical agents and their contexts</li>
+                                    <li><strong>Diverse Philosophers:</strong> Model thinkers from Socrates to Wangari Maathai to Leanne Simpson</li>
+                                    <li><strong>Comparative Analysis:</strong> See how different standpoints reveal different aspects of reality</li>
+                                    <li><strong>Build Your Own Models:</strong> Apply the framework to any thinker, organization, or yourself</li>
+                                    <li><strong>Pattern Recognition:</strong> Understand philosophy as evolution of whose standpoints get included</li>
+                                </ul>
+
+                                <div className="bg-gray-100 p-6 rounded-lg mt-6">
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-3">Why This Matters</h3>
+                                    <p className="text-gray-700">
+                                        You'll gain the capacity to systematically analyze how situated perspectives shape 
+                                        ethical reasoning - not to replace traditional ethics training, but to add powerful 
+                                        tools for understanding whose voices are heard, what gates exclude certain knowledge, 
+                                        and how to design more inclusive ethical systems.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-2xl p-8">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Student Information</h3>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Course *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                        value={formData.course}
+                                        onChange={(e) => setFormData({...formData, course: e.target.value})}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                                >
+                                    Begin Module 3 →
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Introduction Section
+        function IntroSection({ onComplete, onNext }) {
+            useEffect(() => {
+                onComplete();
+            }, []);
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                        Why Model Philosophers?
+                    </h2>
+                    
+                    <div className="prose prose-lg max-w-none">
+                        <p className="text-xl text-gray-700 mb-6">
+                            Philosophy isn't a museum of dead ideas—it's a living record of how humans have tried to 
+                            understand ethical life from different standpoints across time and culture.
+                        </p>
+
+                        <div className="bg-gradient-to-br from-blue-100 to-purple-100 border-2 border-purple-300 p-6 rounded-lg mb-6">
+                            <h3 className="text-xl font-semibold text-purple-900 mb-3">The Core Insight</h3>
+                            <p className="text-gray-700 mb-3">
+                                What you can see about ethics depends on <em>where you stand</em> in social, historical, 
+                                and material reality. This isn't relativism—it's recognizing that:
+                            </p>
+                            <ul className="space-y-2 text-gray-700">
+                                <li>• Different <strong>standpoints</strong> reveal different aspects of ethical reality</li>
+                                <li>• The same person in different <strong>contexts</strong> will notice different things</li>
+                                <li>• <strong>Gates</strong> (institutional filters) determine whose knowledge counts</li>
+                                <li>• <strong>Meta-constructors</strong> (review systems) allow adaptation over time</li>
+                            </ul>
+                        </div>
+
+                        <h3 className="text-2xl font-semibold text-gray-900 mb-4">What Formal Modeling Reveals</h3>
+                        
+                        <p className="text-gray-700 mb-4">
+                            By creating formal models of different thinkers, you'll see patterns that are hard to notice otherwise:
+                        </p>
+
+                        <div className="space-y-4 mb-6">
+                            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                                <p className="font-semibold text-blue-900 mb-1">Pattern 1: Standpoint Shapes Vision</p>
+                                <p className="text-sm text-gray-700">
+                                    Aristotle (free Greek male) saw flourishing as requiring leisure and excluding slaves. 
+                                    Wangari Maathai (Kenyan woman) saw environmental degradation and women's oppression as 
+                                    connected. Same reality, different visibility.
+                                </p>
+                            </div>
+
+                            <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                                <p className="font-semibold text-green-900 mb-1">Pattern 2: Gates Determine Knowledge</p>
+                                <p className="text-sm text-gray-700">
+                                    Socrates required dialectical skill (excluding workers, women, slaves). Leanne Simpson 
+                                    works with land-based practice (excluded by text-only academic gates). What counts as 
+                                    "valid knowledge" isn't neutral.
+                                </p>
+                            </div>
+
+                            <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                                <p className="font-semibold text-purple-900 mb-1">Pattern 3: Meta-Constructors Enable Adaptation</p>
+                                <p className="text-sm text-gray-700">
+                                    Nelson Mandela's Truth & Reconciliation Commission was itself a meta-constructor—a system 
+                                    for reviewing the past to build a different future. Some philosophers built systems that 
+                                    could learn; others didn't.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 my-6">
+                            <h4 className="font-semibold text-yellow-900 mb-2">A Note on Method</h4>
+                            <p className="text-gray-700 text-sm">
+                                This isn't about judging historical figures by contemporary standards. It's about 
+                                understanding <em>how standpoint shaped what was visible</em> to them, what their 
+                                frameworks enabled, and what they couldn't see from their position. The goal is 
+                                pattern recognition, not moral scorekeeping.
+                            </p>
+                        </div>
+
+                        <h3 className="text-2xl font-semibold text-gray-900 mb-4">Your Journey Through This Module</h3>
+                        
+                        <ol className="space-y-3 text-gray-700">
+                            <li><strong>1. Learn OS1/OS2 Distinction:</strong> Understand what traditional ethics teaches 
+                            (OS1) and what meta-constructor capacity adds (OS2)</li>
+                            <li><strong>2. Master FAIM-QIRF Notation:</strong> Learn the formal language for modeling agents</li>
+                            <li><strong>3. Explore Diverse Exemplars:</strong> Study 6 thinkers from different standpoints 
+                            (Ancient Greece, Kenya, South Africa, Indigenous Canada, US)</li>
+                            <li><strong>4. Compare and Analyze:</strong> See what different standpoints reveal and exclude</li>
+                            <li><strong>5. Build Your Own Models:</strong> Apply the framework to create your own formal models</li>
+                            <li><strong>6. Synthesize:</strong> Reflect on patterns across philosophy's evolution</li>
+                        </ol>
+                    </div>
+
+                    <button
+                        onClick={onNext}
+                        className="mt-8 w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                        Continue to OS1/OS2 Framework →
+                    </button>
+                </div>
+            );
+        }
+
+        // OS1/OS2 Section - NEW DETAILED EXPLANATION
+        function OS1OS2Section({ onComplete, onNext }) {
+            const [expandedSection, setExpandedSection] = useState(null);
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                        OS1 & OS2: Two Complementary Capacities
+                    </h2>
+                    
+                    <div className="prose prose-lg max-w-none">
+                        <p className="text-xl text-gray-700 mb-6">
+                            Think of ethical reasoning as having two "operating systems" that work together:
+                        </p>
+
+                        {/* OS1 Section */}
+                        <div className="mb-6">
+                            <button
+                                onClick={() => setExpandedSection(expandedSection === 'os1' ? null : 'os1')}
+                                className="w-full text-left bg-blue-50 hover:bg-blue-100 p-6 rounded-lg border-2 border-blue-200 transition-colors"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-blue-900">OS1: Phenomenological Reference Frame</h3>
+                                        <p className="text-gray-700 mt-2">The "how it feels" layer - living ethical experience and reasoning</p>
+                                    </div>
+                                    <span className="text-2xl">{expandedSection === 'os1' ? '▼' : '▶'}</span>
+                                </div>
+                            </button>
+
+                            {expandedSection === 'os1' && (
+                                <div className="mt-4 p-6 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-700 mb-4">
+                                        <strong>OS1</strong> is what traditional ethics courses teach well: how to engage in 
+                                        rigorous ethical reasoning from <em>within</em> the lived experience of making moral choices.
+                                    </p>
+
+                                    <h4 className="font-semibold text-gray-900 mb-2">What OS1 Includes:</h4>
+                                    <ul className="space-y-2 text-gray-700 mb-4">
+                                        <li>• <strong>Phenomenological engagement:</strong> What it feels like to face moral dilemmas</li>
+                                        <li>• <strong>Conceptual analysis:</strong> What does "justice" or "rights" mean?</li>
+                                        <li>• <strong>Argument construction:</strong> Building and evaluating moral reasoning</li>
+                                        <li>• <strong>Framework application:</strong> Using deontology, consequentialism, virtue ethics</li>
+                                        <li>• <strong>Case analysis:</strong> Applying principles to particular situations</li>
+                                        <li>• <strong>Intuition refinement:</strong> Testing and refining moral judgments</li>
+                                    </ul>
+
+                                    <div className="bg-blue-100 p-4 rounded mb-4">
+                                        <p className="font-semibold text-blue-900 mb-1">Example OS1 Reasoning:</p>
+                                        <p className="text-sm text-gray-700 italic">
+                                            "Should I lie to protect a friend? Kant would say lying violates the categorical 
+                                            imperative—I can't will that everyone lies. But consequentially, truth-telling here 
+                                            causes harm. My virtue ethics intuition says loyalty matters. How do I weigh these?"
+                                        </p>
+                                    </div>
+
+                                    <h4 className="font-semibold text-gray-900 mb-2">Why OS1 is Essential:</h4>
+                                    <p className="text-gray-700">
+                                        You can't do good ethics without these skills. They're foundational—how to think clearly, 
+                                        argue rigorously, apply frameworks consistently. Traditional ethics courses are very good 
+                                        at teaching OS1, and they should be.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* OS2 Section */}
+                        <div className="mb-6">
+                            <button
+                                onClick={() => setExpandedSection(expandedSection === 'os2' ? null : 'os2')}
+                                className="w-full text-left bg-purple-50 hover:bg-purple-100 p-6 rounded-lg border-2 border-purple-200 transition-colors"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-purple-900">OS2: Meta-Constructor Capacity</h3>
+                                        <p className="text-gray-700 mt-2">The "modeling our modeling" layer - reflective awareness of how ethics works</p>
+                                    </div>
+                                    <span className="text-2xl">{expandedSection === 'os2' ? '▼' : '▶'}</span>
+                                </div>
+                            </button>
+
+                            {expandedSection === 'os2' && (
+                                <div className="mt-4 p-6 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-700 mb-4">
+                                        <strong>OS2</strong> is the capacity to step back and model <em>how</em> ethical reasoning 
+                                        happens—including how your own standpoint shapes what you can see, what gates determine whose 
+                                        knowledge counts, and how to build systems that can learn and adapt.
+                                    </p>
+
+                                    <h4 className="font-semibold text-gray-900 mb-2">What OS2 Adds:</h4>
+                                    <ul className="space-y-2 text-gray-700 mb-4">
+                                        <li>• <strong>Standpoint awareness:</strong> How does my position shape what I see?</li>
+                                        <li>• <strong>Gate recognition:</strong> What institutional filters determine "valid" knowledge?</li>
+                                        <li>• <strong>Constructor analysis:</strong> What procedures produce ethical knowledge?</li>
+                                        <li>• <strong>Meta-constructor design:</strong> How can systems learn and adapt?</li>
+                                        <li>• <strong>Multi-perspective synthesis:</strong> What becomes visible from other standpoints?</li>
+                                        <li>• <strong>System redesign:</strong> How to make ethical knowledge-production more inclusive?</li>
+                                    </ul>
+
+                                    <div className="bg-purple-100 p-4 rounded mb-4">
+                                        <p className="font-semibold text-purple-900 mb-1">Example OS2 Reasoning:</p>
+                                        <p className="text-sm text-gray-700 italic">
+                                            "Wait—I'm framing this as 'should I lie to protect a friend' because I'm positioned as 
+                                            someone who *has* friends, can protect them, and faces social consequences for lying. 
+                                            But from a refugee's standpoint, the question might be 'should I lie to border officials 
+                                            to save my family?' Different stakes, different visibility. What makes my framing seem 
+                                            'neutral' is actually my particular standpoint. How would the framework look redesigned 
+                                            to include both perspectives systematically?"
+                                        </p>
+                                    </div>
+
+                                    <h4 className="font-semibold text-gray-900 mb-2">Why OS2 Matters:</h4>
+                                    <p className="text-gray-700">
+                                        OS2 lets you see patterns that are invisible from within OS1 alone: whose voices are 
+                                        systematically excluded, what your own standpoint makes hard to see, how to build systems 
+                                        that include multiple perspectives. It's not better than OS1—it's complementary.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* The Sapolsky Problem */}
+                        <div className="bg-gradient-to-br from-red-100 to-orange-100 border-2 border-red-300 p-6 rounded-lg mb-6">
+                            <h3 className="text-xl font-bold text-red-900 mb-3">🧠 Addressing the Sapolsky Problem</h3>
+                            <p className="text-gray-700 mb-3">
+                                Neuroscientist Robert Sapolsky argues we're fully determined by physics and our past. If he's right, 
+                                ethical reasoning seems pointless—at time t+1, we'll do whatever physics and history determine, 
+                                regardless of our "choices" at time t.
+                            </p>
+                            
+                            <h4 className="font-semibold text-red-900 mb-2">The Meta-Constructor Response:</h4>
+                            <p className="text-gray-700 mb-3">
+                                But here's what changes everything: <strong>when agents can build meta-constructors (models of 
+                                themselves that they use to guide themselves), this creates genuine degrees of freedom.</strong>
+                            </p>
+
+                            <div className="bg-white p-4 rounded mb-3">
+                                <p className="text-sm text-gray-700 mb-2">
+                                    <strong>Without meta-constructor capacity:</strong> At t, your behavior at t+1 is determined 
+                                    by physics + past. No room for meaningful choice.
+                                </p>
+                                <p className="text-sm text-gray-700">
+                                    <strong>With meta-constructor capacity:</strong> At t, you can build a *model of yourself* 
+                                    that becomes part of the causal chain shaping t+1. The model itself has causal power because 
+                                    *you use it to guide action*. This isn't magical free will—it's that representations become 
+                                    part of the physics.
+                                </p>
+                            </div>
+
+                            <p className="text-gray-700 text-sm">
+                                Think of it like a map: the map isn't the territory, but once you *have* a map, your behavior 
+                                changes. The map (model) becomes part of what determines where you go. Similarly, when you model 
+                                "what kind of person I want to be" or "what ethical system makes sense," that model shapes your 
+                                next actions. This is OS2's power: the capacity to create self-models that matter causally.
+                            </p>
+                        </div>
+
+                        {/* How They Work Together */}
+                        <div className="bg-green-50 border-l-4 border-green-500 p-6 mb-6">
+                            <h3 className="text-xl font-semibold text-green-900 mb-3">How OS1 and OS2 Work Together</h3>
+                            
+                            <div className="space-y-4 text-gray-700">
+                                <div>
+                                    <p className="font-semibold text-green-900">OS1 without OS2:</p>
+                                    <p className="text-sm">
+                                        You can reason rigorously but might not notice when your standpoint limits what you see, 
+                                        or when institutional gates exclude valid perspectives. You assume your framing is neutral.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p className="font-semibold text-green-900">OS2 without OS1:</p>
+                                    <p className="text-sm">
+                                        You can analyze standpoints and gates but lack the skills to actually reason well about 
+                                        particular cases. Meta-awareness without competence in doing ethics.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p className="font-semibold text-green-900">OS1 + OS2 together:</p>
+                                    <p className="text-sm">
+                                        You can reason rigorously (OS1) <em>while</em> remaining aware of how your standpoint 
+                                        shapes what's visible (OS2), and you can design systems that systematically include 
+                                        multiple perspectives (OS2) <em>while</em> maintaining rigorous standards (OS1).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* What This Module Teaches */}
+                        <div className="bg-gray-100 p-6 rounded-lg">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-3">What This Module Develops</h3>
+                            <p className="text-gray-700 mb-4">
+                                This module specifically builds your OS2 capacity through formal modeling. You'll learn to:
+                            </p>
+                            <ul className="space-y-2 text-gray-700">
+                                <li>• Model any ethical agent (philosopher, organization, yourself) using FAIM-QIRF notation</li>
+                                <li>• Identify which standpoints (SPTS) shape what's visible in someone's reasoning</li>
+                                <li>• Recognize gates (G) that determine whose knowledge counts as valid</li>
+                                <li>• Distinguish constructors (repeatable procedures) from meta-constructors (learning systems)</li>
+                                <li>• Design interventions that expand whose perspectives get included</li>
+                                <li>• Build systems with genuine capacity for adaptation over time</li>
+                            </ul>
+                            <p className="text-gray-700 mt-4 font-semibold">
+                                This doesn't replace OS1 skills from traditional ethics—it complements them by adding the 
+                                meta-level capacity that creates space for genuine agency.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            onComplete();
+                            onNext();
+                        }}
+                        className="mt-8 w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                        Continue to FAIM-QIRF Notation →
+                    </button>
+                </div>
+            );
+        }
+
+        // Continue with NotationSection, ExemplarsSection, etc. in next message due to length...
+        // Let me add placeholders for now and we can expand
+
+        function NotationSection({ onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">FAIM-QIRF Notation</h2>
+                    <p className="text-gray-700 mb-6">Full notation tutorial coming...</p>
+                    <button onClick={() => { onComplete(); onNext(); }} 
+                        className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Exemplars →
+                    </button>
+                </div>
+            );
+        }
+
+        function ExemplarsSection({ philosophers, currentModel, setCurrentModel, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Philosopher Exemplars</h2>
+                    <p className="text-gray-700 mb-6">Interactive exemplars coming...</p>
+                    <button onClick={() => { onComplete(); onNext(); }} 
+                        className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Comparison →
+                    </button>
+                </div>
+            );
+        }
+
+        function ComparisonSection({ philosophers, comparisonPair, setComparisonPair, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Comparative Analysis</h2>
+                    <p className="text-gray-700 mb-6">Comparison tools coming...</p>
+                    <button onClick={() => { onComplete(); onNext(); }} 
+                        className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Student Modeling →
+                    </button>
+                </div>
+            );
+        }
+
+        function ModelingSection({ studentModels, setStudentModels, onComplete, onNext }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Student Modeling Exercise</h2>
+                    <p className="text-gray-700 mb-6">Modeling tools coming...</p>
+                    <button onClick={() => { onComplete(); onNext(); }} 
+                        className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Continue to Synthesis →
+                    </button>
+                </div>
+            );
+        }
+
+        function SynthesisSection({ studentInfo, sessionData, sectionProgress, studentModels, onComplete }) {
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Synthesis & Completion</h2>
+                    <p className="text-gray-700 mb-6">Synthesis and certificate coming...</p>
+                    <button onClick={onComplete} 
+                        className="px-6 py-3 bg-purple-600 text-white rounded-lg">
+                        Complete Module
+                    </button>
+                </div>
+            );
+        }
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>

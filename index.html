@@ -926,10 +926,320 @@
             );
         }
 
+        // OS1 Deep Dive Component - NEW for Stage 2
+        function OS1DeepDive({ phil1Key, phil2Key, p1, p2 }) {
+            // Generate OS1 analysis for any philosopher pair
+            const getOS1Analysis = (phil) => {
+                const spts = Array.isArray(phil.model.SPTS) ? phil.model.SPTS : [phil.model.SPTS];
+                const primarySPTS = spts[0] || "their position";
+                
+                return {
+                    canSee: phil.model.PRS_t,
+                    blindSpots: phil.whatExcluded,
+                    standpoint: primarySPTS,
+                    filters: phil.model.BROAPlus
+                };
+            };
+
+            const os1_p1 = getOS1Analysis(p1);
+            const os1_p2 = getOS1Analysis(p2);
+
+            // Generate specific disagreement example based on their ethics
+            const getDisagreementExample = () => {
+                const examples = {
+                    'aristotle-maathai': {
+                        issue: "What counts as 'flourishing' or 'the good life'?",
+                        p1Answer: `${p1.name} sees flourishing as leisure for philosophical contemplation and civic virtue—requiring freedom from labor.`,
+                        p2Answer: `${p2.name} sees flourishing as community sustainability where women's environmental work enables collective wellbeing.`,
+                        conflict: "Aristotle's 'flourishing' requires excluding most people from labor; Maathai's requires including everyone's labor as valuable."
+                    },
+                    'socrates-simpson': {
+                        issue: "What counts as 'knowledge' and how is it validated?",
+                        p1Answer: `${p1.name} sees knowledge as universal truths revealed through dialectical questioning—requiring rational debate.`,
+                        p2Answer: `${p2.name} sees knowledge as land-based, seasonal, relational practices passed through generations in specific places.`,
+                        conflict: "Socrates' method requires abstract, text-based universals; Simpson's knowledge is concrete, place-specific, and practice-based."
+                    },
+                    'aristotle-mandela': {
+                        issue: "What is justice and how should wrongdoing be addressed?",
+                        p1Answer: `${p1.name} sees justice as giving each their due based on natural hierarchy and desert—corrective and distributive.`,
+                        p2Answer: `${p2.name} sees justice as Ubuntu-based restoration of relationship and dignity—transformation over punishment.`,
+                        conflict: "Aristotle assumes natural hierarchies determine desert; Mandela sees all humans as equal in dignity requiring relational repair."
+                    },
+                    'socrates-collins': {
+                        issue: "Whose experience counts as valid philosophical evidence?",
+                        p1Answer: `${p1.name} values dialectical skill and logical argumentation—requiring leisure and training.`,
+                        p2Answer: `${p2.name} values lived experience, dialogue, ethics of care, and community accountability as evidence.`,
+                        conflict: "Socrates' gates exclude those without dialectical training; Collins' standpoint epistemology validates situated knowledge."
+                    }
+                };
+
+                // Try to find specific pair analysis
+                const key1 = `${phil1Key}-${phil2Key}`;
+                const key2 = `${phil2Key}-${phil1Key}`;
+                
+                if (examples[key1]) return examples[key1];
+                if (examples[key2]) {
+                    const ex = examples[key2];
+                    return {
+                        issue: ex.issue,
+                        p1Answer: ex.p2Answer,
+                        p2Answer: ex.p1Answer,
+                        conflict: ex.conflict
+                    };
+                }
+
+                // Generic analysis for any pair
+                return {
+                    issue: "What ethical knowledge is valid and how should it be pursued?",
+                    p1Answer: `From ${os1_p1.standpoint}, ${p1.name} sees: ${os1_p1.canSee}`,
+                    p2Answer: `From ${os1_p2.standpoint}, ${p2.name} sees: ${os1_p2.canSee}`,
+                    conflict: `Different standpoints make different patterns visible. Neither is wrong—they're seeing different aspects of reality from their positions.`
+                };
+            };
+
+            const disagreement = getDisagreementExample();
+
+            // Generate intervention suggestions
+            const getInterventions = (fromPhil, toPhil, fromOS1, toOS1) => {
+                return {
+                    contextChange: `Include people from ${toOS1.standpoint} in philosophical dialogue. Create institutional space for their knowledge forms.`,
+                    broaAddition: `Add concepts that make ${toPhil.name}'s patterns visible: ${toPhil.model.BROAPlus.split(';')[0]}`,
+                    sptsExpansion: `Experience life from ${toOS1.standpoint} position—see what becomes visible from that vantage point.`,
+                    result: `${fromPhil.name} could see how their framework is situated, not universal, and what ${toPhil.name} sees from a different position.`
+                };
+            };
+
+            const intervention1to2 = getInterventions(p1, p2, os1_p1, os1_p2);
+            const intervention2to1 = getInterventions(p2, p1, os1_p2, os1_p1);
+
+            return (
+                <div className="space-y-6 mb-6 fade-in">
+                    <div className="bg-gradient-to-br from-indigo-100 to-purple-100 border-2 border-indigo-400 rounded-lg p-6">
+                        <h3 className="text-2xl font-bold text-indigo-900 mb-4 flex items-center">
+                            <span className="text-3xl mr-3">🔍</span>
+                            OS1 DEEP DIVE: Why They'd Disagree
+                        </h3>
+                        <p className="text-gray-700 mb-4">
+                            This analysis shows how each philosopher's <strong>OS1 (their lived phenomenological reference frame)</strong> 
+                            shapes what they can see about ethics—and why they'd disagree even if both reason rigorously.
+                        </p>
+                    </div>
+
+                    {/* What Each Can See */}
+                    <div className="bg-white border-2 border-gray-300 rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">📊 WHAT EACH OS1 MAKES VISIBLE</h4>
+                        
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
+                                <h5 className="font-bold text-blue-900 mb-3">{p1.name}'s OS1</h5>
+                                <div className="space-y-3 text-sm">
+                                    <div>
+                                        <p className="font-semibold text-blue-800">SPTS (Standpoint):</p>
+                                        <p className="text-gray-700">{os1_p1.standpoint}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-blue-800">PRS (What's Visible):</p>
+                                        <p className="text-gray-700">{os1_p1.canSee}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-blue-800">BROA+ (Filters):</p>
+                                        <p className="text-gray-700">{os1_p1.filters}</p>
+                                    </div>
+                                    <div className="bg-red-100 p-3 rounded border-l-4 border-red-500">
+                                        <p className="font-semibold text-red-800">Blind Spots:</p>
+                                        <p className="text-gray-700 text-xs">{os1_p1.blindSpots}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-300">
+                                <h5 className="font-bold text-purple-900 mb-3">{p2.name}'s OS1</h5>
+                                <div className="space-y-3 text-sm">
+                                    <div>
+                                        <p className="font-semibold text-purple-800">SPTS (Standpoint):</p>
+                                        <p className="text-gray-700">{os1_p2.standpoint}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-purple-800">PRS (What's Visible):</p>
+                                        <p className="text-gray-700">{os1_p2.canSee}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-purple-800">BROA+ (Filters):</p>
+                                        <p className="text-gray-700">{os1_p2.filters}</p>
+                                    </div>
+                                    <div className="bg-red-100 p-3 rounded border-l-4 border-red-500">
+                                        <p className="font-semibold text-red-800">Blind Spots:</p>
+                                        <p className="text-gray-700 text-xs">{os1_p2.blindSpots}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Why They'd Disagree */}
+                    <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-yellow-900 mb-4">⚡ PREDICTED DISAGREEMENT</h4>
+                        
+                        <div className="space-y-4">
+                            <div className="bg-white p-4 rounded-lg">
+                                <p className="font-bold text-gray-900 mb-2">Issue:</p>
+                                <p className="text-gray-700">{disagreement.issue}</p>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="bg-blue-100 p-4 rounded-lg">
+                                    <p className="font-bold text-blue-900 mb-2">{p1.name}'s Position:</p>
+                                    <p className="text-sm text-gray-700">{disagreement.p1Answer}</p>
+                                </div>
+
+                                <div className="bg-purple-100 p-4 rounded-lg">
+                                    <p className="font-bold text-purple-900 mb-2">{p2.name}'s Position:</p>
+                                    <p className="text-sm text-gray-700">{disagreement.p2Answer}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded">
+                                <p className="font-bold text-red-900 mb-2">The Conflict:</p>
+                                <p className="text-sm text-gray-700">{disagreement.conflict}</p>
+                            </div>
+
+                            <div className="bg-green-100 border-l-4 border-green-500 p-4 rounded">
+                                <p className="font-bold text-green-900 mb-2">Critical Insight:</p>
+                                <p className="text-sm text-gray-700">
+                                    This isn't about one being right and the other wrong. Different SPTS make different 
+                                    patterns visible. Both may be reasoning rigorously—they're just seeing different 
+                                    aspects of reality from their positions. This is why <strong>OS2 (meta-constructor 
+                                    capacity)</strong> matters: it lets us model how standpoints shape vision.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Intervention Design */}
+                    <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-400 rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-green-900 mb-4">🔧 INTERVENTION DESIGN: Building Bridges</h4>
+                        <p className="text-gray-700 mb-4">
+                            What would need to change for each philosopher to see what the other sees? 
+                            This is the practical work of epistemic justice.
+                        </p>
+
+                        <div className="space-y-6">
+                            <div className="bg-white p-5 rounded-lg border-2 border-blue-300">
+                                <h5 className="font-bold text-blue-900 mb-3">
+                                    To help {p1.name} see what {p2.name} sees:
+                                </h5>
+                                <div className="space-y-3 text-sm">
+                                    <div>
+                                        <p className="font-semibold text-blue-800">1. Change Context (C):</p>
+                                        <p className="text-gray-700">{intervention1to2.contextChange}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-blue-800">2. Add to BROA+ (Filters):</p>
+                                        <p className="text-gray-700">{intervention1to2.broaAddition}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-blue-800">3. Expand SPTS (Standpoint):</p>
+                                        <p className="text-gray-700">{intervention1to2.sptsExpansion}</p>
+                                    </div>
+                                    <div className="bg-blue-100 p-3 rounded border-l-4 border-blue-500">
+                                        <p className="font-semibold text-blue-900">Result:</p>
+                                        <p className="text-gray-700">{intervention1to2.result}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-lg border-2 border-purple-300">
+                                <h5 className="font-bold text-purple-900 mb-3">
+                                    To help {p2.name} see what {p1.name} sees:
+                                </h5>
+                                <div className="space-y-3 text-sm">
+                                    <div>
+                                        <p className="font-semibold text-purple-800">1. Change Context (C):</p>
+                                        <p className="text-gray-700">{intervention2to1.contextChange}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-purple-800">2. Add to BROA+ (Filters):</p>
+                                        <p className="text-gray-700">{intervention2to1.broaAddition}</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-purple-800">3. Expand SPTS (Standpoint):</p>
+                                        <p className="text-gray-700">{intervention2to1.sptsExpansion}</p>
+                                    </div>
+                                    <div className="bg-purple-100 p-3 rounded border-l-4 border-purple-500">
+                                        <p className="font-semibold text-purple-900">Result:</p>
+                                        <p className="text-gray-700">{intervention2to1.result}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Meta-Constructor Insight */}
+                    <div className="bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-400 rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-purple-900 mb-4">💡 META-CONSTRUCTOR INSIGHT</h4>
+                        <p className="text-gray-700 mb-4">
+                            <strong>What would a system need to systematically include both perspectives?</strong>
+                        </p>
+                        
+                        <div className="space-y-3 text-sm">
+                            <div className="bg-white p-4 rounded">
+                                <p className="font-semibold text-purple-900 mb-1">MultiTrack Evidence Systems:</p>
+                                <p className="text-gray-700">
+                                    Create parallel tracks where both {p1.name}'s and {p2.name}'s forms of knowledge 
+                                    are validated. Not "either/or" but "both/and" with equal standing.
+                                </p>
+                            </div>
+                            <div className="bg-white p-4 rounded">
+                                <p className="font-semibold text-purple-900 mb-1">Constructors (Persistent Procedures):</p>
+                                <p className="text-gray-700">
+                                    Build evaluation rubrics and pedagogical methods that don't privilege one SPTS over another. 
+                                    Make the procedures explicit and repeatable.
+                                </p>
+                            </div>
+                            <div className="bg-white p-4 rounded">
+                                <p className="font-semibold text-purple-900 mb-1">Meta-Constructors (Learning Loops):</p>
+                                <p className="text-gray-700">
+                                    Schedule regular reviews: "Are we still excluding certain SPTS? What new patterns 
+                                    are becoming visible? How do we adapt?" This is how systems learn over time.
+                                </p>
+                            </div>
+                            <div className="bg-purple-200 p-4 rounded border-l-4 border-purple-600">
+                                <p className="font-bold text-purple-900 mb-1">The Goal:</p>
+                                <p className="text-gray-700">
+                                    Not getting everyone to agree, but building systems that can hold multiple valid perspectives 
+                                    simultaneously. <strong>This is OS2 capacity in action</strong>—designing systems that can 
+                                    systematically include diverse OS1s without forcing conformity.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Assignment Prompt */}
+                    <div className="bg-gray-100 border-2 border-gray-400 rounded-lg p-6">
+                        <h4 className="text-xl font-bold text-gray-900 mb-4">📝 ASSIGNMENT PROMPT</h4>
+                        <p className="text-gray-700 mb-3">
+                            Use this analysis as a model. For your paper/project, choose an ethical disagreement and:
+                        </p>
+                        <ol className="space-y-2 text-sm text-gray-700 list-decimal list-inside">
+                            <li>Map each party's SPTS, PRS, and BROA+ (what they can/can't see)</li>
+                            <li>Show why they'd disagree given their different OS1s</li>
+                            <li>Design specific interventions (Context, BROA+, SPTS changes)</li>
+                            <li>Propose meta-constructors that could systematically include both perspectives</li>
+                        </ol>
+                        <p className="text-xs text-gray-600 mt-3 italic">
+                            This demonstrates OS2 capacity: modeling how standpoints shape ethical reasoning and 
+                            designing systems for epistemic justice.
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
         function ComparisonSection({ philosophers, comparisonPair, setComparisonPair, onComplete, onNext }) {
             const [phil1, setPhil1] = useState(comparisonPair[0]);
             const [phil2, setPhil2] = useState(comparisonPair[1]);
             const [showAnalysis, setShowAnalysis] = useState(false);
+            const [showDeepDive, setShowDeepDive] = useState(false);
             const philosopherList = Object.keys(philosophers);
 
             if (showAnalysis && phil1 && phil2) {
@@ -939,7 +1249,10 @@
                 return (
                     <div className="bg-white rounded-lg shadow-lg p-8">
                         <button
-                            onClick={() => setShowAnalysis(false)}
+                            onClick={() => {
+                                setShowAnalysis(false);
+                                setShowDeepDive(false);
+                            }}
                             className="mb-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
                         >
                             ← Choose Different Pair
@@ -974,9 +1287,32 @@
                             </div>
                         </div>
 
-                        <div className="flex space-x-4">
+                        {/* NEW: OS1 Deep Dive Button */}
+                        {!showDeepDive && (
+                            <div className="mb-6">
+                                <button
+                                    onClick={() => setShowDeepDive(true)}
+                                    className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg"
+                                >
+                                    🔍 OS1 Deep Dive: Why They'd Disagree & How to Bridge the Gap
+                                </button>
+                                <p className="text-sm text-gray-600 text-center mt-2">
+                                    See exactly what each philosopher's OS1 makes visible/invisible and design interventions for mutual understanding
+                                </p>
+                            </div>
+                        )}
+
+                        {/* NEW: OS1 Deep Dive Analysis */}
+                        {showDeepDive && (
+                            <OS1DeepDive phil1Key={phil1} phil2Key={phil2} p1={p1} p2={p2} />
+                        )}
+
+                        <div className="flex space-x-4 mt-6">
                             <button
-                                onClick={() => setShowAnalysis(false)}
+                                onClick={() => {
+                                    setShowAnalysis(false);
+                                    setShowDeepDive(false);
+                                }}
                                 className="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold"
                             >
                                 Compare Different Pair

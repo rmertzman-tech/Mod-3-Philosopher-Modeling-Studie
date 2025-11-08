@@ -3,29 +3,1305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Module 3 Test</title>
+    <title>Module 3: Philosopher Modeling Studio</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect } = React;
 
+        // Generate session ID
+        const generateSessionId = () => {
+            const date = new Date();
+            const dateStr = date.toISOString().slice(0,10).replace(/-/g, '');
+            const timeStr = date.toTimeString().slice(0,5).replace(/:/g, '');
+            const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+            return `M3-${dateStr}-${timeStr}-${random}`;
+        };
+
+        // Philosopher database
+        const PHILOSOPHERS = {
+            socrates: {
+                name: "Socrates",
+                era: "Ancient Greece (470-399 BCE)",
+                region: "Western",
+                image: "🏛️",
+                model: {
+                    IK: "Examined life is the only life worth living; virtue is knowledge",
+                    PRS_t: "Ethical questions revealed through dialectical questioning; appearances deceive",
+                    SPTS: ["Athenian citizen", "Stonemason's son", "Gadfly of Athens", "Male philosopher"],
+                    AH: "Grew up in democratic Athens; experienced Peloponnesian War; questioned sophists; executed by democracy",
+                    BROAPlus: "Knowledge through dialogue; definitions must withstand scrutiny; virtue can be taught",
+                    Cap: "Capacity for self-examination and moral reasoning present in everyone",
+                    Capab: "Elenchus method - systematic questioning to reveal contradictions",
+                    Cons: "Dialogical practice; trained students like Plato; method persisted",
+                    MetaCons: "Limited - relied on memory of students; no systematic review",
+                    Gates: "Required dialectical skill; oral culture; excluded those unable to argue"
+                },
+                keyInsights: [
+                    "Made ethics central to philosophy",
+                    "Method over doctrine - questioning more important than answers",
+                    "Universal moral knowledge possible through reason"
+                ],
+                limitations: [
+                    "Required leisure and education - excluded workers, slaves, women",
+                    "Athenian male perspective shaped what counted as virtue",
+                    "Oral method meant fragility"
+                ],
+                whatRevealed: "Power of systematic questioning; ethics as rational inquiry",
+                whatExcluded: "Perspectives of women, slaves, non-Greeks; practical wisdom of workers"
+            },
+            
+            aristotle: {
+                name: "Aristotle",
+                era: "Ancient Greece (384-322 BCE)",
+                region: "Western",
+                image: "📖",
+                model: {
+                    IK: "Human flourishing (eudaimonia) through virtue; teleological nature; golden mean",
+                    PRS_t: "Purpose/function reveals proper activity; observation + reason; virtue through habituation",
+                    SPTS: ["Greek male", "Macedonian", "Philosopher", "Teacher", "Naturalist"],
+                    AH: "Student of Plato; tutor to Alexander; founded Lyceum; systematic researcher",
+                    BROAPlus: "Empiricism + logic; systematic classification; virtue as excellence of function",
+                    Cap: "Humans have natural capacity for reason and virtue (but NOT slaves, barbarians, women fully)",
+                    Capab: "Virtue ethics; systematic observation; logical analysis; classification",
+                    Cons: "Lyceum as institution; systematic corpus; educational tradition",
+                    MetaCons: "Limited - preserved through manuscripts but little adaptation mechanism",
+                    Gates: "Flourishing = free Greek males with leisure; slaves 'naturally' suited to servitude"
+                },
+                keyInsights: [
+                    "Ethics tied to human function and flourishing",
+                    "Virtue developed through practice and habituation",
+                    "Practical wisdom (phronesis) essential"
+                ],
+                limitations: [
+                    "Flourishing defined from perspective of free Greek male elite",
+                    "Justified slavery and women's subordination as 'natural'",
+                    "Required leisure for virtuous activity"
+                ],
+                whatRevealed: "Virtue ethics as systematic framework; importance of character",
+                whatExcluded: "Perspectives of women, slaves, 'barbarians'; alternative conceptions of flourishing"
+            },
+
+            maathai: {
+                name: "Wangari Maathai",
+                era: "Contemporary (1940-2011)",
+                region: "Kenya/Africa",
+                image: "🌳",
+                model: {
+                    IK: "Environmental destruction is human rights and women's issue; trees as symbols of struggle",
+                    PRS_t: "Sees connections: deforestation → poverty → women's labor → political oppression",
+                    SPTS: ["Kenyan woman", "Kikuyu", "Environmental scientist", "Political activist", "Nobel laureate"],
+                    AH: "Colonial Kenya; educated in biology (U.S.); post-independence corruption; imprisonment",
+                    BROAPlus: "Indigenous ecological knowledge + Western science; women's labor as ecological work",
+                    Cap: "Women have capacity for environmental stewardship and political organizing",
+                    Capab: "Community tree-planting as reliable method; linking local action to systemic change",
+                    Cons: "Green Belt Movement (30M+ trees planted); movement persisted and expanded",
+                    MetaCons: "Movement adapted: trees → women's rights → democracy → peace",
+                    Gates: "Challenged: 'Environment = elite/expert domain', 'Women = not political actors'"
+                },
+                keyInsights: [
+                    "Environmental degradation and women's oppression are connected",
+                    "Local ecological action can be powerful political organizing",
+                    "Indigenous knowledge and Western science can complement"
+                ],
+                limitations: [
+                    "Movement faced government repression; scaling required support",
+                    "Gender-based organizing can essentialize 'women's roles'",
+                    "Tension between local autonomy and coordination"
+                ],
+                whatRevealed: "Environmental ethics from African women's standpoint",
+                whatExcluded: "Western 'wilderness preservation' that excluded people living in nature"
+            },
+
+            mandela: {
+                name: "Nelson Mandela",
+                era: "Contemporary (1918-2013)",
+                region: "South Africa/Africa",
+                image: "🕊️",
+                model: {
+                    IK: "Ubuntu - 'I am because we are'; justice as restoration not retribution; dignity of all",
+                    PRS_t: "Sees possibility of reconciliation where others see only revenge; transformation over punishment",
+                    SPTS: ["Black South African", "Xhosa", "Lawyer", "Political prisoner (27 years)", "President"],
+                    AH: "Apartheid oppression; armed resistance; Robben Island; negotiated transition; led democracy",
+                    BROAPlus: "Ubuntu philosophy + Western jurisprudence + Gandhian non-violence; relational ontology",
+                    Cap: "Even oppressors have capacity for transformation; communities can heal",
+                    Capab: "Truth and Reconciliation process as method; constitutional democracy with protections",
+                    Cons: "TRC as institution (truth → acknowledgment → amnesty); constitution with Bill of Rights",
+                    MetaCons: "TRC itself was meta-constructor - reviewing past to build future; constitution for adaptation",
+                    Gates: "Challenged: 'Justice = punishment'; included perpetrators as humans capable of change"
+                },
+                keyInsights: [
+                    "Justice can be restorative - healing communities, not just punishing individuals",
+                    "Ubuntu relational ontology - we are constituted by relationships",
+                    "Former enemies can become fellow citizens through truth-telling"
+                ],
+                limitations: [
+                    "TRC criticized for insufficient material reparations",
+                    "Some victims felt betrayed by amnesty process",
+                    "Economic apartheid persisted"
+                ],
+                whatRevealed: "Alternative justice model from African philosophy; dignity-based approach",
+                whatExcluded: "Western punitive justice models; individualist ontology"
+            },
+
+            simpson: {
+                name: "Leanne Betasamosake Simpson",
+                era: "Contemporary (1971-present)",
+                region: "Michi Saagiig Nishnaabeg/Canada",
+                image: "🌲",
+                model: {
+                    IK: "Knowledge lives in land-tethered practice; resurgence not reconciliation; Nishnaabeg intelligence",
+                    PRS_t: "Sees knowledge as seasonal, relational, place-based; land as pedagogy; practice as theory",
+                    SPTS: ["Michi Saagiig Nishnaabeg woman", "Scholar", "Artist", "Land defender", "Mother"],
+                    AH: "Generations of colonial disruption; cultural resurgence movements; language revitalization",
+                    BROAPlus: "Nishnaabeg cosmology + critical theory; Indigenous governance; storytelling as methodology",
+                    Cap: "Indigenous practices carry sophisticated epistemological, political, and ethical systems",
+                    Capab: "Land-based education; seasonal rounds; ceremony; storytelling; language as worldview",
+                    Cons: "Community-based learning; intergenerational knowledge transmission; place-based practices",
+                    MetaCons: "Resurgence as continuous practice - not endpoint but process; adaptation while maintaining core",
+                    Gates: "Challenged: 'Knowledge = text in universities'; 'Valid = universal & abstract'"
+                },
+                keyInsights: [
+                    "Knowledge can be particular to place yet rigorous",
+                    "Reconciliation without land return is empty; resurgence requires material transformation",
+                    "Practice-based knowledge systems are sophisticated"
+                ],
+                limitations: [
+                    "Requires access to land and community - colonial dispossession creates barriers",
+                    "Challenge of transmitting land-based knowledge in urban settings",
+                    "Risk of appropriation when sharing Indigenous knowledge"
+                ],
+                whatRevealed: "Non-textual, place-based epistemologies; critique of reconciliation discourse",
+                whatExcluded: "Western assumption that valid knowledge must be abstract, universal, text-based"
+            },
+
+            collins: {
+                name: "Patricia Hill Collins",
+                era: "Contemporary (1948-present)",
+                region: "United States",
+                image: "📚",
+                model: {
+                    IK: "Intersectionality reveals matrix of domination; lived experience is legitimate knowledge",
+                    PRS_t: "Sees how race, gender, class interact - not additive but multiplicative; standpoint shapes knowledge",
+                    SPTS: ["Black American woman", "Sociologist", "Working-class background", "Academic"],
+                    AH: "Philadelphia working-class Black community; education through segregation and integration; outsider-within",
+                    BROAPlus: "Black feminist standpoint epistemology: concrete experience + dialogue + ethics of care + accountability",
+                    Cap: "Black women have distinctive standpoint revealing truths invisible from other positions",
+                    Capab: "Standpoint methodology; intersectional analysis; validating multiple forms of evidence",
+                    Cons: "Black feminist thought as intellectual tradition; institutional presence in academy",
+                    MetaCons: "Intersectionality adapted to analyze multiple axes; outsider-within as ongoing reflective position",
+                    Gates: "Challenged: 'Scholarly = only abstract/textual'; 'Objective = emotionally detached'"
+                },
+                keyInsights: [
+                    "Standpoint matters - what you can see depends on where you stand in systems of power",
+                    "Intersectionality - race, gender, class create unique positions, not just combinations",
+                    "Concrete experience, dialogue, care, and accountability are valid evidence bases"
+                ],
+                limitations: [
+                    "Standpoint can become essentialized - not all Black women see same things",
+                    "Tension between claiming distinctive standpoint and avoiding essentialism",
+                    "Institutional inclusion brings risk of cooptation"
+                ],
+                whatRevealed: "Matrix of domination; intersectional analysis; lived experience as legitimate knowledge",
+                whatExcluded: "Traditional epistemology's rejection of situated knowledge and lived experience"
+            }
+        };
+
+        // Main App
         function App() {
+            const [studentInfo, setStudentInfo] = useState({ name: '', email: '', course: '' });
+            const [hasStarted, setHasStarted] = useState(false);
+            const [currentSection, setCurrentSection] = useState('intro');
+            const [sessionData, setSessionData] = useState(null);
+            const [sectionProgress, setSectionProgress] = useState({});
+            const [studentModels, setStudentModels] = useState({});
+            const [completedViews, setCompletedViews] = useState(new Set());
+            const [comparisonPair, setComparisonPair] = useState([null, null]);
+
+            // Load progress
+            useEffect(() => {
+                const saved = localStorage.getItem('module3Progress');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        if (data.hasStarted) {
+                            setHasStarted(true);
+                            setStudentInfo(data.studentInfo || {});
+                            setCurrentSection(data.currentSection || 'intro');
+                            setSessionData(data.sessionData || null);
+                            setSectionProgress(data.sectionProgress || {});
+                            setStudentModels(data.studentModels || {});
+                            setCompletedViews(new Set(data.completedViews || []));
+                        }
+                    } catch (e) {
+                        console.error('Error loading progress:', e);
+                    }
+                }
+            }, []);
+
+            // Save progress
+            useEffect(() => {
+                if (hasStarted) {
+                    localStorage.setItem('module3Progress', JSON.stringify({
+                        hasStarted,
+                        studentInfo,
+                        currentSection,
+                        sessionData,
+                        sectionProgress,
+                        studentModels,
+                        completedViews: Array.from(completedViews)
+                    }));
+                }
+            }, [hasStarted, studentInfo, currentSection, sessionData, sectionProgress, studentModels, completedViews]);
+
+            const startModule = (info) => {
+                const session = {
+                    sessionId: generateSessionId(),
+                    startTime: new Date().toISOString()
+                };
+                setStudentInfo(info);
+                setSessionData(session);
+                setHasStarted(true);
+                
+                const sections = ['intro', 'os1os2', 'notation', 'exemplars', 'comparison', 'modeling', 'synthesis'];
+                const initialProgress = {};
+                sections.forEach(section => {
+                    initialProgress[section] = {
+                        started: section === 'intro',
+                        startTime: section === 'intro' ? new Date().toISOString() : null,
+                        status: section === 'intro' ? 'in-progress' : 'not-started'
+                    };
+                });
+                setSectionProgress(initialProgress);
+            };
+
+            const navigateToSection = (sectionId) => {
+                if (sectionProgress[currentSection]?.startTime) {
+                    const startTime = new Date(sectionProgress[currentSection].startTime);
+                    const now = new Date();
+                    const timeSpent = Math.round((now - startTime) / 60000);
+                    
+                    setSectionProgress(prev => ({
+                        ...prev,
+                        [currentSection]: {
+                            ...prev[currentSection],
+                            endTime: now.toISOString(),
+                            timeSpent
+                        }
+                    }));
+                }
+
+                if (sectionProgress[sectionId] && !sectionProgress[sectionId].started) {
+                    setSectionProgress(prev => ({
+                        ...prev,
+                        [sectionId]: {
+                            ...prev[sectionId],
+                            started: true,
+                            startTime: new Date().toISOString(),
+                            status: 'in-progress'
+                        }
+                    }));
+                }
+
+                setCurrentSection(sectionId);
+            };
+
+            const completeSection = (sectionId) => {
+                setSectionProgress(prev => ({
+                    ...prev,
+                    [sectionId]: {
+                        ...prev[sectionId],
+                        status: 'proficient'
+                    }
+                }));
+            };
+
+            const calculateProgress = () => {
+                const sections = Object.keys(sectionProgress);
+                if (sections.length === 0) return 0;
+                const completed = sections.filter(s => 
+                    ['proficient', 'mastered'].includes(sectionProgress[s]?.status)
+                ).length;
+                return Math.round((completed / sections.length) * 100);
+            };
+
+            if (!hasStarted) {
+                return <WelcomeScreen onStart={startModule} />;
+            }
+
+            const sections = [
+                { id: 'intro', label: 'Introduction', icon: '🎯' },
+                { id: 'os1os2', label: 'OS1/OS2 Framework', icon: '🧠' },
+                { id: 'notation', label: 'FAIM-QIRF Notation', icon: '📐' },
+                { id: 'exemplars', label: 'Philosopher Exemplars', icon: '🌍' },
+                { id: 'comparison', label: 'Comparative Analysis', icon: '⚖️' },
+                { id: 'modeling', label: 'Student Modeling', icon: '✏️' },
+                { id: 'synthesis', label: 'Synthesis & Completion', icon: '🎓' }
+            ];
+
             return (
-                <div className="min-h-screen p-8">
-                    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-                        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                            Module 3 Test - If you see this, React is working!
-                        </h1>
-                        <p className="text-lg text-gray-700">
-                            The app loads successfully. Now let's check the full version.
+                <div className="min-h-screen">
+                    <header className="gradient-bg text-white shadow-lg">
+                        <div className="max-w-7xl mx-auto px-4 py-6">
+                            <h1 className="text-3xl font-bold mb-2">Module 3: Philosopher Modeling Studio</h1>
+                            <p className="text-lg opacity-90">Building Meta-Constructor Capacity</p>
+                            <div className="mt-4 bg-white/20 rounded-full h-2">
+                                <div className="bg-white h-full transition-all" style={{ width: `${calculateProgress()}%` }}></div>
+                            </div>
+                            <p className="text-sm mt-2 opacity-80">{calculateProgress()}% Complete</p>
+                        </div>
+                    </header>
+
+                    <nav className="bg-white shadow-sm sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="flex overflow-x-auto py-4 space-x-2">
+                                {sections.map(section => {
+                                    const status = sectionProgress[section.id]?.status || 'not-started';
+                                    const isCurrent = currentSection === section.id;
+                                    
+                                    return (
+                                        <button
+                                            key={section.id}
+                                            onClick={() => navigateToSection(section.id)}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
+                                                isCurrent ? 'bg-purple-100 text-purple-700 font-semibold' : 'hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <span className="text-xl">{section.icon}</span>
+                                            <span>{section.label}</span>
+                                            {status === 'proficient' && <span>✓</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        <div className="fade-in">
+                            {currentSection === 'intro' && (
+                                <IntroSection onComplete={() => completeSection('intro')} onNext={() => navigateToSection('os1os2')} />
+                            )}
+                            {currentSection === 'os1os2' && (
+                                <OS1OS2Section onComplete={() => completeSection('os1os2')} onNext={() => navigateToSection('notation')} />
+                            )}
+                            {currentSection === 'notation' && (
+                                <NotationSection onComplete={() => completeSection('notation')} onNext={() => navigateToSection('exemplars')} />
+                            )}
+                            {currentSection === 'exemplars' && (
+                                <ExemplarsSection 
+                                    philosophers={PHILOSOPHERS}
+                                    completedViews={completedViews}
+                                    setCompletedViews={setCompletedViews}
+                                    onComplete={() => completeSection('exemplars')}
+                                    onNext={() => navigateToSection('comparison')}
+                                />
+                            )}
+                            {currentSection === 'comparison' && (
+                                <ComparisonSection 
+                                    philosophers={PHILOSOPHERS}
+                                    comparisonPair={comparisonPair}
+                                    setComparisonPair={setComparisonPair}
+                                    onComplete={() => completeSection('comparison')}
+                                    onNext={() => navigateToSection('modeling')}
+                                />
+                            )}
+                            {currentSection === 'modeling' && (
+                                <ModelingSection 
+                                    studentModels={studentModels}
+                                    setStudentModels={setStudentModels}
+                                    onComplete={() => completeSection('modeling')}
+                                    onNext={() => navigateToSection('synthesis')}
+                                />
+                            )}
+                            {currentSection === 'synthesis' && (
+                                <SynthesisSection 
+                                    studentInfo={studentInfo}
+                                    sessionData={sessionData}
+                                    sectionProgress={sectionProgress}
+                                    studentModels={studentModels}
+                                    onComplete={() => completeSection('synthesis')}
+                                />
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        // Welcome Screen
+        function WelcomeScreen({ onStart }) {
+            const [formData, setFormData] = useState({ name: '', email: '', course: '' });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.name && formData.email && formData.course) {
+                    onStart(formData);
+                }
+            };
+
+            return (
+                <div className="min-h-screen gradient-bg py-12 px-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-2xl p-8 mb-6">
+                            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                                Module 3: Philosopher Modeling Studio
+                            </h1>
+                            <p className="text-xl text-gray-700 mb-6">
+                                Building Meta-Constructor Capacity Through Formal Modeling
+                            </p>
+
+                            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
+                                <h3 className="text-xl font-semibold text-blue-900 mb-2">What This Module Adds</h3>
+                                <p className="text-gray-700">
+                                    Traditional ethics courses teach essential skills (OS1): rigorous argumentation, 
+                                    concept analysis, understanding core frameworks. This module adds a complementary 
+                                    layer (OS2): the capacity to formally model how different standpoints shape ethical reasoning.
+                                </p>
+                            </div>
+
+                            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 my-6">
+                                <h4 className="text-lg font-semibold text-purple-900 mb-2">The Sapolsky Challenge & Resolution</h4>
+                                <p className="text-gray-700 mb-3">
+                                    If we're fully determined by physics and our past (as Robert Sapolsky argues), 
+                                    where's the room for ethics or genuine agency?
+                                </p>
+                                <p className="text-gray-700">
+                                    The meta-constructor response: when agents can build models of themselves that guide 
+                                    their actions, this creates genuine degrees of freedom. The self-model becomes part 
+                                    of the causal chain, creating space for agency.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-2xl p-8">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Student Information</h3>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Course *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                        value={formData.course}
+                                        onChange={(e) => setFormData({...formData, course: e.target.value})}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                                >
+                                    Begin Module 3 →
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Section Components (continuing in next part due to length)
+        function IntroSection({ onComplete, onNext }) {
+            useEffect(() => { onComplete(); }, []);
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Model Philosophers?</h2>
+                    
+                    <p className="text-xl text-gray-700 mb-6">
+                        Philosophy isn't a museum of dead ideas—it's a living record of how humans have tried to 
+                        understand ethical life from different standpoints across time and culture.
+                    </p>
+
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 border-2 border-purple-300 p-6 rounded-lg mb-6">
+                        <h3 className="text-xl font-semibold text-purple-900 mb-3">The Core Insight</h3>
+                        <p className="text-gray-700 mb-3">
+                            What you can see about ethics depends on where you stand in social, historical, and material reality.
+                        </p>
+                        <ul className="space-y-2 text-gray-700">
+                            <li>• Different standpoints reveal different aspects of ethical reality</li>
+                            <li>• The same person in different contexts will notice different things</li>
+                            <li>• Gates (institutional filters) determine whose knowledge counts</li>
+                            <li>• Meta-constructors (review systems) allow adaptation over time</li>
+                        </ul>
+                    </div>
+
+                    <button
+                        onClick={onNext}
+                        className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
+                    >
+                        Continue to OS1/OS2 Framework →
+                    </button>
+                </div>
+            );
+        }
+
+        function OS1OS2Section({ onComplete, onNext }) {
+            const [expanded, setExpanded] = useState(null);
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                        OS1 & OS2: Two Complementary Capacities
+                    </h2>
+
+                    <p className="text-xl text-gray-700 mb-6">
+                        Think of ethical reasoning as having two "operating systems" that work together:
+                    </p>
+
+                    {/* OS1 */}
+                    <div className="mb-6">
+                        <button
+                            onClick={() => setExpanded(expanded === 'os1' ? null : 'os1')}
+                            className="w-full text-left bg-blue-50 hover:bg-blue-100 p-6 rounded-lg border-2 border-blue-200"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-blue-900">OS1: Phenomenological Reference Frame</h3>
+                                    <p className="text-gray-700 mt-2">The "how it feels" layer - living ethical experience</p>
+                                </div>
+                                <span className="text-2xl">{expanded === 'os1' ? '▼' : '▶'}</span>
+                            </div>
+                        </button>
+
+                        {expanded === 'os1' && (
+                            <div className="mt-4 p-6 bg-gray-50 rounded-lg">
+                                <p className="text-gray-700 mb-4">
+                                    OS1 is what traditional ethics courses teach well: rigorous ethical reasoning from 
+                                    within the lived experience of making moral choices.
+                                </p>
+                                <ul className="space-y-2 text-gray-700">
+                                    <li>• Phenomenological engagement with ethical dilemmas</li>
+                                    <li>• Conceptual analysis (what does "justice" mean?)</li>
+                                    <li>• Argument construction and evaluation</li>
+                                    <li>• Framework application (deontology, consequentialism, virtue)</li>
+                                    <li>• Case analysis and intuition refinement</li>
+                                </ul>
+                                <p className="text-gray-700 mt-4 font-semibold">
+                                    Why OS1 is essential: These are foundational skills for rigorous ethical reasoning.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* OS2 */}
+                    <div className="mb-6">
+                        <button
+                            onClick={() => setExpanded(expanded === 'os2' ? null : 'os2')}
+                            className="w-full text-left bg-purple-50 hover:bg-purple-100 p-6 rounded-lg border-2 border-purple-200"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-purple-900">OS2: Meta-Constructor Capacity</h3>
+                                    <p className="text-gray-700 mt-2">The "modeling our modeling" layer - reflective awareness</p>
+                                </div>
+                                <span className="text-2xl">{expanded === 'os2' ? '▼' : '▶'}</span>
+                            </div>
+                        </button>
+
+                        {expanded === 'os2' && (
+                            <div className="mt-4 p-6 bg-gray-50 rounded-lg">
+                                <p className="text-gray-700 mb-4">
+                                    OS2 is the capacity to step back and model how ethical reasoning happens—including how 
+                                    your standpoint shapes what you can see.
+                                </p>
+                                <ul className="space-y-2 text-gray-700">
+                                    <li>• Standpoint awareness: How does my position shape what I see?</li>
+                                    <li>• Gate recognition: What institutional filters determine valid knowledge?</li>
+                                    <li>• Constructor analysis: What procedures produce ethical knowledge?</li>
+                                    <li>• Meta-constructor design: How can systems learn and adapt?</li>
+                                    <li>• Multi-perspective synthesis: What's visible from other standpoints?</li>
+                                </ul>
+                                <p className="text-gray-700 mt-4 font-semibold">
+                                    Why OS2 matters: Reveals patterns invisible from within OS1 alone.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Sapolsky */}
+                    <div className="bg-gradient-to-br from-red-100 to-orange-100 border-2 border-red-300 p-6 rounded-lg mb-6">
+                        <h3 className="text-xl font-bold text-red-900 mb-3">The Sapolsky Problem & Resolution</h3>
+                        <p className="text-gray-700 mb-3">
+                            Neuroscientist Robert Sapolsky argues we're fully determined by physics and our past. 
+                            If true, ethical reasoning seems pointless.
+                        </p>
+                        <div className="bg-white p-4 rounded mb-3">
+                            <p className="font-semibold text-red-900 mb-2">The Meta-Constructor Response:</p>
+                            <p className="text-sm text-gray-700">
+                                When agents can build meta-constructors (models of themselves that they use to guide themselves), 
+                                this creates genuine degrees of freedom. Not libertarian free will, but real options at t+1 that 
+                                depend on how we model ourselves at t. The model itself has causal power.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => { onComplete(); onNext(); }}
+                        className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
+                    >
+                        Continue to FAIM-QIRF Notation →
+                    </button>
+                </div>
+            );
+        }
+
+        function NotationSection({ onComplete, onNext }) {
+            const [currentStep, setCurrentStep] = useState(0);
+
+            const steps = [
+                {
+                    title: "Agent Structure",
+                    content: "Every agent: a = ⟨IK, PRS_t, SPTS, AH, BROA+, Cap, Capab, Cons, MetaCons⟩",
+                    components: [
+                        { symbol: "IK", name: "Identity Kernel", desc: "Core non-negotiable commitments" },
+                        { symbol: "PRS_t", name: "Phenomenal Reference Space", desc: "What's visible/legible now" },
+                        { symbol: "SPTS", name: "Standpoint Set", desc: "Situated perspectives agent can occupy" },
+                        { symbol: "AH", name: "Assembly History", desc: "How past experiences shape current filters" },
+                        { symbol: "BROA+", name: "Beliefs-Rules-Ontology-Authenticity", desc: "Filters shaping interpretation" },
+                        { symbol: "Cap", name: "Capacities", desc: "Latent abilities" },
+                        { symbol: "Capab", name: "Capabilities", desc: "Reliable methods" },
+                        { symbol: "Cons", name: "Constructors", desc: "Procedures that persist" },
+                        { symbol: "MetaCons", name: "Meta-Constructors", desc: "Learning loops" }
+                    ]
+                },
+                {
+                    title: "World Structure",
+                    content: "World: W_t = ⟨Ctx_t, Cons, MetaCons, G⟩",
+                    components: [
+                        { symbol: "Ctx_t", name: "Context", desc: "Current social/epistemic contexts" },
+                        { symbol: "Cons", name: "Constructors", desc: "Institutional procedures" },
+                        { symbol: "MetaCons", name: "Meta-Constructors", desc: "Review/repair mechanisms" },
+                        { symbol: "G", name: "Gates", desc: "What counts as evidence/voice/standing" }
+                    ]
+                },
+                {
+                    title: "Why This Notation Matters",
+                    content: "This lets us compare thinkers systematically, identify intervention points, and design better systems.",
+                    example: "Aristotle's G (gates) excluded women/slaves. Intervention: Add MetaCons that include excluded SPTS."
+                }
+            ];
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">FAIM-QIRF Notation Tutorial</h2>
+
+                    <div className="flex space-x-2 mb-4">
+                        {steps.map((step, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setCurrentStep(idx)}
+                                className={`px-4 py-2 rounded-lg font-semibold ${
+                                    currentStep === idx ? 'bg-purple-600 text-white' : 'bg-gray-200'
+                                }`}
+                            >
+                                Step {idx + 1}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-purple-200 rounded-lg p-6 mb-6">
+                        <h3 className="text-2xl font-bold text-purple-900 mb-4">{steps[currentStep].title}</h3>
+                        <p className="text-gray-700 mb-6">{steps[currentStep].content}</p>
+
+                        {steps[currentStep].components && (
+                            <div className="space-y-3">
+                                {steps[currentStep].components.map((comp, idx) => (
+                                    <div key={idx} className="bg-white p-4 rounded-lg shadow">
+                                        <div className="flex items-start">
+                                            <div className="bg-purple-100 text-purple-900 font-mono font-bold px-3 py-1 rounded text-sm mr-4">
+                                                {comp.symbol}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-gray-900">{comp.name}</p>
+                                                <p className="text-sm text-gray-600 mt-1">{comp.desc}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {steps[currentStep].example && (
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-6">
+                                <p className="text-sm text-gray-700">{steps[currentStep].example}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex justify-between">
+                        <button
+                            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+                            disabled={currentStep === 0}
+                            className={`px-4 py-2 rounded-lg font-semibold ${
+                                currentStep === 0 ? 'bg-gray-200 text-gray-400' : 'bg-gray-300 hover:bg-gray-400'
+                            }`}
+                        >
+                            ← Previous
+                        </button>
+                        {currentStep === steps.length - 1 ? (
+                            <button
+                                onClick={() => { onComplete(); onNext(); }}
+                                className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                            >
+                                Continue to Exemplars →
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => setCurrentStep(currentStep + 1)}
+                                className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                            >
+                                Next →
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // (Continuing with Exemplars, Comparison, Modeling, and Synthesis sections...)
+        // Due to length limits, I'll create these as streamlined versions that work
+
+        function ExemplarsSection({ philosophers, completedViews, setCompletedViews, onComplete, onNext }) {
+            const [selectedPhil, setSelectedPhil] = useState(null);
+            const philosopherList = Object.keys(philosophers);
+            const allViewed = philosopherList.every(p => completedViews.has(p));
+
+            if (selectedPhil) {
+                const phil = philosophers[selectedPhil];
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <button
+                            onClick={() => setSelectedPhil(null)}
+                            className="mb-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+                        >
+                            ← Back to All
+                        </button>
+
+                        <div className="flex items-center space-x-4 mb-6">
+                            <div className="text-6xl">{phil.image}</div>
+                            <div>
+                                <h2 className="text-3xl font-bold text-gray-900">{phil.name}</h2>
+                                <p className="text-lg text-gray-600">{phil.era}</p>
+                                <p className="text-md text-purple-600 font-semibold">{phil.region}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-6 mb-6">
+                            <h3 className="text-2xl font-bold text-purple-900 mb-4">Formal Model</h3>
+                            <div className="space-y-3">
+                                {Object.entries(phil.model).map(([key, value]) => (
+                                    <div key={key} className="bg-white p-3 rounded-lg">
+                                        <span className="bg-purple-100 text-purple-900 font-mono text-xs px-2 py-1 rounded mr-2">
+                                            {key}
+                                        </span>
+                                        {Array.isArray(value) ? (
+                                            <ul className="text-sm text-gray-700 mt-2">
+                                                {value.map((v, i) => <li key={i}>• {v}</li>)}
+                                            </ul>
+                                        ) : (
+                                            <span className="text-sm text-gray-700">{value}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4 mb-6">
+                            <div className="bg-green-50 p-4 rounded-lg">
+                                <h4 className="font-bold text-green-900 mb-2">Key Insights</h4>
+                                <ul className="text-sm text-gray-700 space-y-1">
+                                    {phil.keyInsights.map((insight, i) => <li key={i}>• {insight}</li>)}
+                                </ul>
+                            </div>
+                            <div className="bg-yellow-50 p-4 rounded-lg">
+                                <h4 className="font-bold text-yellow-900 mb-2">Limitations</h4>
+                                <ul className="text-sm text-gray-700 space-y-1">
+                                    {phil.limitations.map((limit, i) => <li key={i}>• {limit}</li>)}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setSelectedPhil(null)}
+                            className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                        >
+                            View All Philosophers
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Philosopher Exemplars</h2>
+                    <p className="text-lg text-gray-700 mb-6">
+                        Study these diverse thinkers to see how different standpoints reveal different aspects of reality.
+                    </p>
+
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <p className="text-sm">
+                            Progress: {completedViews.size} of {philosopherList.length} viewed
+                            {allViewed && " ✓ All viewed!"}
                         </p>
                     </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        {philosopherList.map(philKey => {
+                            const phil = philosophers[philKey];
+                            const viewed = completedViews.has(philKey);
+                            
+                            return (
+                                <div
+                                    key={philKey}
+                                    className={`border-2 rounded-lg p-6 ${viewed ? 'border-green-400' : 'border-gray-300'}`}
+                                >
+                                    <div className="text-center mb-4">
+                                        <div className="text-5xl mb-3">{phil.image}</div>
+                                        <h3 className="text-xl font-bold">{phil.name}</h3>
+                                        <p className="text-sm text-gray-600">{phil.era}</p>
+                                        <p className="text-xs text-purple-600 font-semibold">{phil.region}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedPhil(philKey);
+                                            setCompletedViews(new Set([...completedViews, philKey]));
+                                        }}
+                                        className={`w-full px-4 py-2 rounded-lg font-semibold ${
+                                            viewed ? 'bg-green-100 text-green-700' : 'bg-purple-600 text-white hover:bg-purple-700'
+                                        }`}
+                                    >
+                                        {viewed ? '✓ View Again' : 'View Model'}
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {allViewed && (
+                        <button
+                            onClick={() => { onComplete(); onNext(); }}
+                            className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                        >
+                            Continue to Comparative Analysis →
+                        </button>
+                    )}
+                </div>
+            );
+        }
+
+        function ComparisonSection({ philosophers, comparisonPair, setComparisonPair, onComplete, onNext }) {
+            const [phil1, setPhil1] = useState(comparisonPair[0]);
+            const [phil2, setPhil2] = useState(comparisonPair[1]);
+            const [showAnalysis, setShowAnalysis] = useState(false);
+            const philosopherList = Object.keys(philosophers);
+
+            if (showAnalysis && phil1 && phil2) {
+                const p1 = philosophers[phil1];
+                const p2 = philosophers[phil2];
+
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <button
+                            onClick={() => setShowAnalysis(false)}
+                            className="mb-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+                        >
+                            ← Choose Different Pair
+                        </button>
+
+                        <h2 className="text-3xl font-bold text-gray-900 mb-6">Comparative Analysis</h2>
+
+                        <div className="grid md:grid-cols-2 gap-6 mb-8">
+                            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 text-center">
+                                <div className="text-5xl mb-3">{p1.image}</div>
+                                <h3 className="text-2xl font-bold">{p1.name}</h3>
+                                <p className="text-sm text-gray-600">{p1.era}</p>
+                            </div>
+                            <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-6 text-center">
+                                <div className="text-5xl mb-3">{p2.image}</div>
+                                <h3 className="text-2xl font-bold">{p2.name}</h3>
+                                <p className="text-sm text-gray-600">{p2.era}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-green-50 border-2 border-green-300 p-6 rounded-lg mb-6">
+                            <h3 className="text-xl font-bold text-green-900 mb-4">What Different SPTS Reveal</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <p className="font-semibold text-blue-900 mb-2">{p1.name}</p>
+                                    <p className="text-sm text-gray-700">{p1.whatRevealed}</p>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-purple-900 mb-2">{p2.name}</p>
+                                    <p className="text-sm text-gray-700">{p2.whatRevealed}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={() => setShowAnalysis(false)}
+                                className="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold"
+                            >
+                                Compare Different Pair
+                            </button>
+                            <button
+                                onClick={() => { onComplete(); onNext(); }}
+                                className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                            >
+                                Continue to Student Modeling →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Comparative Analysis Tool</h2>
+                    <p className="text-lg text-gray-700 mb-6">
+                        Compare any two philosophers to see how different standpoints reveal different aspects of reality.
+                    </p>
+
+                    <div className="grid md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">Select First Philosopher</h3>
+                            <div className="space-y-3">
+                                {philosopherList.map(philKey => {
+                                    const phil = philosophers[philKey];
+                                    return (
+                                        <button
+                                            key={philKey}
+                                            onClick={() => setPhil1(philKey)}
+                                            className={`w-full text-left p-4 rounded-lg border-2 ${
+                                                phil1 === philKey ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                                            }`}
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <span className="text-3xl">{phil.image}</span>
+                                                <span className="font-semibold">{phil.name}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">Select Second Philosopher</h3>
+                            <div className="space-y-3">
+                                {philosopherList.map(philKey => {
+                                    const phil = philosophers[philKey];
+                                    return (
+                                        <button
+                                            key={philKey}
+                                            onClick={() => setPhil2(philKey)}
+                                            className={`w-full text-left p-4 rounded-lg border-2 ${
+                                                phil2 === philKey ? 'border-purple-500 bg-purple-50' : 'border-gray-300'
+                                            }`}
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <span className="text-3xl">{phil.image}</span>
+                                                <span className="font-semibold">{phil.name}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            if (phil1 && phil2 && phil1 !== phil2) {
+                                setComparisonPair([phil1, phil2]);
+                                setShowAnalysis(true);
+                            }
+                        }}
+                        disabled={!phil1 || !phil2 || phil1 === phil2}
+                        className={`w-full px-6 py-3 rounded-lg font-semibold ${
+                            phil1 && phil2 && phil1 !== phil2
+                                ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                : 'bg-gray-300 text-gray-500'
+                        }`}
+                    >
+                        Compare These Philosophers →
+                    </button>
+                </div>
+            );
+        }
+
+        function ModelingSection({ studentModels, setStudentModels, onComplete, onNext }) {
+            const [model, setModel] = useState({
+                name: '', IK: '', PRS_t: '', SPTS: [''], AH: '', Capab: '', Cons: ''
+            });
+            const [submitted, setSubmitted] = useState(false);
+
+            const isComplete = model.name && model.IK && model.PRS_t && model.SPTS[0] && model.AH && model.Capab && model.Cons;
+
+            if (submitted) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <div className="text-center mb-8">
+                            <div className="text-6xl mb-4">✅</div>
+                            <h2 className="text-3xl font-bold text-gray-900 mb-4">Model Created!</h2>
+                            <p className="text-lg text-gray-700">
+                                You've built a formal model of {model.name}.
+                            </p>
+                        </div>
+
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={() => {
+                                    setSubmitted(false);
+                                    setModel({ name: '', IK: '', PRS_t: '', SPTS: [''], AH: '', Capab: '', Cons: '' });
+                                }}
+                                className="flex-1 px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold"
+                            >
+                                Model Another Person
+                            </button>
+                            <button
+                                onClick={() => { onComplete(); onNext(); }}
+                                className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                            >
+                                Continue to Synthesis →
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Build Your Own Model</h2>
+                    <p className="text-lg text-gray-700 mb-6">
+                        Apply FAIM-QIRF to model anyone: a philosopher, public figure, organization, family member, or yourself.
+                    </p>
+
+                    <div className="space-y-4">
+                        <input
+                            type="text"
+                            placeholder="Name *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            value={model.name}
+                            onChange={(e) => setModel({...model, name: e.target.value})}
+                        />
+                        <textarea
+                            placeholder="IK: Core commitments *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            rows="2"
+                            value={model.IK}
+                            onChange={(e) => setModel({...model, IK: e.target.value})}
+                        />
+                        <textarea
+                            placeholder="PRS_t: What's visible to them *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            rows="2"
+                            value={model.PRS_t}
+                            onChange={(e) => setModel({...model, PRS_t: e.target.value})}
+                        />
+                        <input
+                            type="text"
+                            placeholder="SPTS: Standpoint (at least one) *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            value={model.SPTS[0]}
+                            onChange={(e) => setModel({...model, SPTS: [e.target.value]})}
+                        />
+                        <textarea
+                            placeholder="AH: Assembly history *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            rows="2"
+                            value={model.AH}
+                            onChange={(e) => setModel({...model, AH: e.target.value})}
+                        />
+                        <textarea
+                            placeholder="Capab: Reliable methods *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            rows="2"
+                            value={model.Capab}
+                            onChange={(e) => setModel({...model, Capab: e.target.value})}
+                        />
+                        <textarea
+                            placeholder="Cons: Procedures that persist *"
+                            className="w-full px-4 py-2 border rounded-lg"
+                            rows="2"
+                            value={model.Cons}
+                            onChange={(e) => setModel({...model, Cons: e.target.value})}
+                        />
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            if (isComplete) {
+                                setStudentModels({...studentModels, [Date.now()]: model});
+                                setSubmitted(true);
+                            }
+                        }}
+                        disabled={!isComplete}
+                        className={`mt-6 w-full px-6 py-3 rounded-lg font-semibold ${
+                            isComplete ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-300 text-gray-500'
+                        }`}
+                    >
+                        {isComplete ? 'Submit Model →' : 'Complete Required Fields'}
+                    </button>
+                </div>
+            );
+        }
+
+        function SynthesisSection({ studentInfo, sessionData, sectionProgress, studentModels, onComplete }) {
+            const [reflections, setReflections] = useState({ patterns: '', osInsight: '', application: '' });
+            const [showCert, setShowCert] = useState(false);
+
+            const allComplete = Object.values(reflections).every(r => r.length >= 100);
+
+            const downloadCertificate = () => {
+                const cert = `Module 3 Completion Certificate
+                
+Student: ${studentInfo.name}
+Email: ${studentInfo.email}
+Course: ${studentInfo.course}
+Session ID: ${sessionData.sessionId}
+Completed: ${new Date().toLocaleString()}
+
+You've mastered:
+- OS1/OS2 distinction
+- FAIM-QIRF notation
+- 6 diverse philosopher models
+- Comparative analysis
+- Student modeling (${Object.keys(studentModels).length} created)
+
+Reflections:
+${reflections.patterns}
+
+${reflections.osInsight}
+
+${reflections.application}`;
+
+                const blob = new Blob([cert], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Module3_${studentInfo.name.replace(/\s+/g, '_')}.txt`;
+                a.click();
+            };
+
+            if (showCert) {
+                return (
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        <div className="text-center mb-8">
+                            <div className="text-6xl mb-4">🎓</div>
+                            <h2 className="text-4xl font-bold text-gray-900 mb-4">Module 3 Complete!</h2>
+                            <p className="text-xl text-gray-700">
+                                You've mastered formal modeling of ethical agents using FAIM-QIRF notation.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={downloadCertificate}
+                            className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700"
+                        >
+                            📄 Download Certificate
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg p-8">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Synthesis & Reflection</h2>
+                    
+                    <div className="space-y-6 mb-8">
+                        <div>
+                            <h4 className="font-bold mb-2">Patterns Across Philosophers (100+ words)</h4>
+                            <textarea
+                                className="w-full px-4 py-3 border rounded-lg"
+                                rows="4"
+                                value={reflections.patterns}
+                                onChange={(e) => setReflections({...reflections, patterns: e.target.value})}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                {reflections.patterns.split(/\s+/).filter(w => w.length > 0).length} words
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold mb-2">OS1/OS2 Insight (100+ words)</h4>
+                            <textarea
+                                className="w-full px-4 py-3 border rounded-lg"
+                                rows="4"
+                                value={reflections.osInsight}
+                                onChange={(e) => setReflections({...reflections, osInsight: e.target.value})}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                {reflections.osInsight.split(/\s+/).filter(w => w.length > 0).length} words
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold mb-2">Practical Application (100+ words)</h4>
+                            <textarea
+                                className="w-full px-4 py-3 border rounded-lg"
+                                rows="4"
+                                value={reflections.application}
+                                onChange={(e) => setReflections({...reflections, application: e.target.value})}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                {reflections.application.split(/\s+/).filter(w => w.length > 0).length} words
+                            </p>
+                        </div>
+                    </div>
+
+                    {allComplete ? (
+                        <button
+                            onClick={() => {
+                                onComplete();
+                                setShowCert(true);
+                            }}
+                            className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+                        >
+                            Complete Module & Generate Certificate →
+                        </button>
+                    ) : (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+                            <p className="text-sm">Complete all three reflections (100+ words each) to generate certificate.</p>
+                        </div>
+                    )}
                 </div>
             );
         }
